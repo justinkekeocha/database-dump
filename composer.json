@@ -1,0 +1,34 @@
+{
+    "name": "justinkekeocha/database-dump",
+    "description": "This package will save you from loosing database records, supposing you run the laravel migrate:fresh command without exporting a database dump",
+    "keywords": [
+        "database",
+        "dump",
+        "migrations"
+    ],
+    "homepage": "https://github.com/justinkekeocha/database-dump",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kekeocha Justin Chetachukwu",
+            "email": "justinratzinger@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Justinkekeocha\\DatabaseDump\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Justinkekeocha\\DatabaseDump\\DatabaseDumpServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
