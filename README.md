@@ -8,7 +8,7 @@ You can also use this package to generate a dump of your database in JSON format
 ## Installation
 
 ```bash
-composer require justinkekeocha/laravel-database-dump
+composer require justinkekeocha/database-dump
 ```
 
 Publish the assets with this artisan command.
@@ -30,7 +30,7 @@ php artisan database:dump
 
 ## Sample
 
-Sample dump can be found [here](https://github.com/justinkekeocha/laravel-database-dump/blob/main/sample-dump.json)
+Sample dump can be found [here](https://github.com/justinkekeocha/database-dump/blob/main/sample-dump.json)
 
 ## Contributing
 
