@@ -53,6 +53,7 @@ class DatabaseDump extends Command
         if (!is_dir($dumpFolder)) {
             mkdir($dumpFolder, 0755, true);
         }
+
         $filePath = "$dumpFolder/$fileName.json";
         file_put_contents($filePath, $jsonOutput);
 
