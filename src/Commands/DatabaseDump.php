@@ -47,7 +47,7 @@ class DatabaseDump extends Command
         }
 
         $jsonOutput = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $dumpFolder = config('database-dumps.folder');
+        $dumpFolder = config('database-dump.folder');
         $fileName =   date('YmdHis');
 
         if (!is_dir($dumpFolder)) {
