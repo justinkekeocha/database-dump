@@ -54,7 +54,7 @@ class DatabaseDump extends Command
             mkdir($dumpFolder, 0755, true);
         }
 
-        $filePath = "$dumpFolder/$fileName.json";
+        $filePath = "$dumpFolder$fileName.json";
         file_put_contents($filePath, $jsonOutput);
 
         $this->info('Database dump has been saved to ' . $filePath);
