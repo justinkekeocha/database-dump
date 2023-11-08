@@ -26,7 +26,7 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
     {
         parent::boot();
         if ($this->app->runningInConsole()) {
-            (new Filesystem)->copyDirectory(__DIR__ . '/../src/tests/Unit', base_path('tests/Unit'));
+            (new Filesystem)->copyDirectory(__DIR__ . '/../src/tests/Feature', base_path('tests/Feature/Packages'));
         }
     }
 }
