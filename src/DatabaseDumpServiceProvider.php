@@ -18,8 +18,6 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
         $package
             ->name('database-dump')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_database-dump_table')
             ->hasCommand(DatabaseDumpCommand::class);
     }
 }

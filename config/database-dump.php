@@ -1,6 +1,7 @@
 <?php
 
-// config for Justinkekeocha/DatabaseDump
 return [
 
+    'enable' => true,
+    'folder' => database_path("dumps/")
 ];

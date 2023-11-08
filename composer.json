@@ -36,7 +36,8 @@
     "autoload": {
         "psr-4": {
             "Justinkekeocha\\DatabaseDump\\": "src/",
-            "Justinkekeocha\\DatabaseDump\\Database\\Factories\\": "database/factories/"
+            "Justinkekeocha\\DatabaseDump\\Database\\Factories\\": "database/factories/",
+            "Justinkekeocha\\DatabaseDump\\Tests\\": "tests/"
         }
     },
     "autoload-dev": {
