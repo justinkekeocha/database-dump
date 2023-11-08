@@ -18,6 +18,7 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
         $package
             ->name('database-dump')
             ->hasConfigFile()
+            ->publishesServiceProvider('PublishesServiceProvider')
             ->hasCommand(DatabaseDumpCommand::class);
     }
 }
