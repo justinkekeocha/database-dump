@@ -1,17 +1,17 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "justinkekeocha/database-dump",
+    "description": "This package will save you from loosing database records, supposing you run the laravel migrate:fresh command without exporting a database dump",
     "keywords": [
-        ":vendor_name",
+        "justinkekeocha",
         "laravel",
-        ":package_slug"
+        "database-dump"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/justinkekeocha/database-dump",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Kekeocha Justin Chetachukwu",
+            "email": "justinratzinger@gmail.com",
             "role": "Developer"
         }
     ],
@@ -35,19 +35,19 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "Justinkekeocha\\DatabaseDump\\": "src/",
+            "Justinkekeocha\\DatabaseDump\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "Justinkekeocha\\DatabaseDump\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
     "scripts": {
         "post-autoload-dump": "@composer run prepare",
-        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "clear": "@php vendor/bin/testbench package:purge-database-dump --ansi",
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "build": [
             "@composer run prepare",
@@ -73,10 +73,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "Justinkekeocha\\DatabaseDump\\DatabaseDumpServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "DatabaseDump": "Justinkekeocha\\DatabaseDump\\Facades\\DatabaseDump"
             }
         }
     },
