@@ -1,4 +1,5 @@
 <?php
+
 $inPackageEnvironment = boolval(file_get_contents('composer.lock'));
 
 beforeEach(function () {
@@ -27,7 +28,6 @@ it('ensures the package is listed in composer.lock', function () {
 
     $this->assertTrue($packageInstalled);
 });
-
 
 it('checks if package is enabled', function () {
     $this->assertTrue(config('database-dump.enable'));

@@ -6,8 +6,6 @@ use Illuminate\Database\Console\Migrations\FreshCommand as LaravelFreshCommand;
 
 class FreshCommand extends LaravelFreshCommand
 {
-
-
     /**
      * Execute the console command.
      */

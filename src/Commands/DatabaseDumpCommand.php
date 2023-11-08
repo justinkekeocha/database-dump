@@ -30,34 +30,34 @@ class DatabaseDumpCommand extends Command
         $tables = DB::select('SHOW TABLES');
 
         $data = [
-            ["type" => "header", "comment" => "Export database to JSON"],
-            ["type" => "database", "name" => $databaseName],
+            ['type' => 'header', 'comment' => 'Export database to JSON'],
+            ['type' => 'database', 'name' => $databaseName],
         ];
 
         foreach ($tables as $table) {
-            $tableName = $table->{'Tables_in_' . $databaseName};
+            $tableName = $table->{'Tables_in_'.$databaseName};
             $records = DB::table($tableName)->get();
 
             $tableData = [
-                "type" => "table",
-                "name" => $tableName,
-                "data" => $records,
+                'type' => 'table',
+                'name' => $tableName,
+                'data' => $records,
             ];
             $data[] = $tableData;
         }
 
         $jsonOutput = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         $dumpFolder = config('database-dump.folder');
-        $fileName =   date('Y_m_d_His');
+        $fileName = date('Y_m_d_His');
 
-        if (!is_dir($dumpFolder)) {
+        if (! is_dir($dumpFolder)) {
             mkdir($dumpFolder, 0755, true);
         }
 
         $filePath = "$dumpFolder$fileName.json";
         file_put_contents($filePath, $jsonOutput);
 
-        $this->info('Database dump has been saved to ' . $filePath);
+        $this->info('Database dump has been saved to '.$filePath);
 
         return self::SUCCESS;
     }

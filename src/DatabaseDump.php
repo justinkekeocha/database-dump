@@ -16,20 +16,21 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != "." && $file != ".." && is_file($directoryPath . '/' . $file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
                     $result[] = $file;
                 }
             }
 
             return $result;
         } else {
-            echo "The specified directory does not exist.";
+            echo 'The specified directory does not exist.';
         }
     }
 
     public function getLatestDump()
     {
         $dumpListings = $this->getDirectoryListing(config('database-dump.folder'));
+
         return end($dumpListings);
     }
 }

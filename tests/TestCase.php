@@ -3,8 +3,8 @@
 namespace Justinkekeocha\DatabaseDump\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as Orchestra;
 use Justinkekeocha\DatabaseDump\DatabaseDumpServiceProvider;
+use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
 {

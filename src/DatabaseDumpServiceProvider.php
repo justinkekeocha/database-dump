@@ -3,9 +3,9 @@
 namespace Justinkekeocha\DatabaseDump;
 
 use Illuminate\Filesystem\Filesystem;
+use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 
 class DatabaseDumpServiceProvider extends PackageServiceProvider
 {
@@ -22,7 +22,7 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
             ->hasCommand(DatabaseDumpCommand::class);
 
         if ($this->app->runningInConsole()) {
-            (new Filesystem)->copyDirectory(__DIR__ . '/../src/tests/Unit', base_path('tests/Unit'));
+            (new Filesystem)->copyDirectory(__DIR__.'/../src/tests/Unit', base_path('tests/Unit'));
         }
     }
 }
