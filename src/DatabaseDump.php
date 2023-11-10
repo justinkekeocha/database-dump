@@ -4,7 +4,7 @@ namespace Justinkekeocha\DatabaseDump;
 
 class DatabaseDump
 {
-    public function getDirectoryListing($directoryPath)
+    public function getDirectoryListing($directoryPath): array
     {
 
         // Check if the directory exists
@@ -16,7 +16,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -27,10 +27,10 @@ class DatabaseDump
         }
     }
 
-    public function getLatestDump()
+    public function getLatestDump(): string
     {
         $dumpListings = $this->getDirectoryListing(config('database-dump.folder'));
 
-        return end($dumpListings);
+        return config('database-dump.folder') . end($dumpListings);
     }
 }
