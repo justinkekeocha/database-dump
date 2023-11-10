@@ -38,7 +38,7 @@ class DatabaseDumpCommand extends Command
             ];
 
             foreach ($tables as $table) {
-                $tableName = $table->{'Tables_in_' . $databaseName};
+                $tableName = $table->{'Tables_in_'.$databaseName};
                 $records = DB::table($tableName)->get();
 
                 $tableData = [
@@ -53,14 +53,14 @@ class DatabaseDumpCommand extends Command
             $dumpFolder = config('database-dump.folder');
             $fileName = date('Y_m_d_His');
 
-            if (!is_dir($dumpFolder)) {
+            if (! is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
             $filePath = "$dumpFolder$fileName.json";
             file_put_contents($filePath, $jsonOutput);
 
-            $this->info('Database dump has been saved to ' . $filePath);
+            $this->info('Database dump has been saved to '.$filePath);
 
             $this->call('up');
 
