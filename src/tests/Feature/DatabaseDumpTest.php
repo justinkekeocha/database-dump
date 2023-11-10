@@ -1,7 +1,5 @@
 <?php
 
-//https://chat.openai.com/c/f91d74db-aaa9-4988-96bf-54340187787a
-
 it('checks if this package is installed', function () {
     // You can directly check for the existence of a class provided by the package.
     // Replace 'Some\Package\ClassName' with a class name from the package you want to check.
