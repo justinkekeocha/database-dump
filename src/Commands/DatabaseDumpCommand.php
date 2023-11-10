@@ -26,39 +26,48 @@ class DatabaseDumpCommand extends Command
      */
     public function handle()
     {
-        $databaseName = config('database.connections.mysql.database');
-        $tables = DB::select('SHOW TABLES');
+        try {
+            $this->call('down');
 
-        $data = [
-            ['type' => 'header', 'comment' => 'Export database to JSON'],
-            ['type' => 'database', 'name' => $databaseName],
-        ];
+            $databaseName = config('database.connections.mysql.database');
+            $tables = DB::select('SHOW TABLES');
 
-        foreach ($tables as $table) {
-            $tableName = $table->{'Tables_in_'.$databaseName};
-            $records = DB::table($tableName)->get();
-
-            $tableData = [
-                'type' => 'table',
-                'name' => $tableName,
-                'data' => $records,
+            $data = [
+                ['type' => 'header', 'comment' => 'Export database to JSON'],
+                ['type' => 'database', 'name' => $databaseName],
             ];
-            $data[] = $tableData;
+
+            foreach ($tables as $table) {
+                $tableName = $table->{'Tables_in_' . $databaseName};
+                $records = DB::table($tableName)->get();
+
+                $tableData = [
+                    'type' => 'table',
+                    'name' => $tableName,
+                    'data' => $records,
+                ];
+                $data[] = $tableData;
+            }
+
+            $jsonOutput = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $dumpFolder = config('database-dump.folder');
+            $fileName = date('Y_m_d_His');
+
+            if (!is_dir($dumpFolder)) {
+                mkdir($dumpFolder, 0755, true);
+            }
+
+            $filePath = "$dumpFolder$fileName.json";
+            file_put_contents($filePath, $jsonOutput);
+
+            $this->info('Database dump has been saved to ' . $filePath);
+
+            $this->call('up');
+
+            return self::SUCCESS;
+        } catch (\Exception $e) {
+            $this->call('up');
+            throw $e;
         }
-
-        $jsonOutput = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $dumpFolder = config('database-dump.folder');
-        $fileName = date('Y_m_d_His');
-
-        if (! is_dir($dumpFolder)) {
-            mkdir($dumpFolder, 0755, true);
-        }
-
-        $filePath = "$dumpFolder$fileName.json";
-        file_put_contents($filePath, $jsonOutput);
-
-        $this->info('Database dump has been saved to '.$filePath);
-
-        return self::SUCCESS;
     }
 }
