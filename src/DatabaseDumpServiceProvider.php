@@ -28,9 +28,9 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../resources/stubs/.gitignore.stub' => config('database-dump.folder') . '.gitignore',
+                __DIR__.'/../resources/stubs/.gitignore.stub' => config('database-dump.folder').'.gitignore',
             ], 'database-dump-config');
-            (new Filesystem)->copyDirectory(__DIR__ . '/../src/tests/Feature', base_path('tests/Feature/Packages'));
+            (new Filesystem)->copyDirectory(__DIR__.'/../src/tests/Feature', base_path('tests/Feature/Packages'));
         }
     }
 }
