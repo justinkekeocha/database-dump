@@ -25,8 +25,12 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
     public function boot()
     {
         parent::boot();
+
         if ($this->app->runningInConsole()) {
-            (new Filesystem)->copyDirectory(__DIR__.'/../src/tests/Feature', base_path('tests/Feature/Packages'));
+            $this->publishes([
+                __DIR__ . '/../resources/stubs/.gitignore.stub' => config('database-dump.folder') . '.gitignore',
+            ], 'database-dump-config');
+            (new Filesystem)->copyDirectory(__DIR__ . '/../src/tests/Feature', base_path('tests/Feature/Packages'));
         }
     }
 }
