@@ -34,14 +34,14 @@ class DatabaseDumpCommand extends Command
 
             $lineBreak = "\n";
 
-            $header = '{"type":"header","comment":"Export database to JSON"},' . $lineBreak;
-            $header .= '{"type":"database","name":"' . $databaseName . '"},' . $lineBreak;
+            $header = '{"type":"header","comment":"Export database to JSON"},'.$lineBreak;
+            $header .= '{"type":"database","name":"'.$databaseName.'"},'.$lineBreak;
 
-            $data = $header . $lineBreak;
+            $data = $header.$lineBreak;
 
             $firstTableKey = array_key_first($tables);
             foreach ($tables as $tableKey => $table) {
-                $tableName = $table->{'Tables_in_' . $databaseName};
+                $tableName = $table->{'Tables_in_'.$databaseName};
                 $records = DB::table($tableName)->get();
 
                 $recordsJson = $lineBreak;
@@ -52,28 +52,28 @@ class DatabaseDumpCommand extends Command
 
                     $addComma = $lastRecord == $recordKey ? '' : ',';
 
-                    $recordsJson .= json_encode($record, JSON_UNESCAPED_UNICODE) . $addComma . $lineBreak;
+                    $recordsJson .= json_encode($record, JSON_UNESCAPED_UNICODE).$addComma.$lineBreak;
                 }
 
-                $addComma = $firstTableKey ==  $tableKey ? '' : ',';
+                $addComma = $firstTableKey == $tableKey ? '' : ',';
 
-                $data .= $addComma . '{"type":"table","name":"' . $tableName . '","data":' . $lineBreak . "[$recordsJson]" . $lineBreak . '}' . $lineBreak;
+                $data .= $addComma.'{"type":"table","name":"'.$tableName.'","data":'.$lineBreak."[$recordsJson]".$lineBreak.'}'.$lineBreak;
             }
 
             // Wrap the objects in an array if you want the entire JSON to be an array
-            $jsonOutput = "[$lineBreak" . $data . ']';
+            $jsonOutput = "[$lineBreak".$data.']';
 
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His') . '.json';
+            $fileName = date('Y_m_d_His').'.json';
 
-            if (!is_dir($dumpFolder)) {
+            if (! is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
             $filePath = "$dumpFolder$fileName";
             file_put_contents($filePath, $jsonOutput);
 
-            $this->info('Database dump has been saved to ' . $filePath);
+            $this->info('Database dump has been saved to '.$filePath);
 
             $this->call('up');
 
