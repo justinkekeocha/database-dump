@@ -32,35 +32,49 @@ class DatabaseDumpCommand extends Command
             $databaseName = config('database.connections.mysql.database');
             $tables = DB::select('SHOW TABLES');
 
-            $data = [
-                ['type' => 'header', 'comment' => 'Export database to JSON'],
-                ['type' => 'database', 'name' => $databaseName],
-            ];
+            $lineBreak = "\n";
 
-            foreach ($tables as $table) {
-                $tableName = $table->{'Tables_in_'.$databaseName};
+            $header = '{"type":"header","comment":"Export database to JSON"},' .  $lineBreak;
+            $header .= '{"type":"database","name":"' . $databaseName . '"},' .  $lineBreak;
+
+            $data = $header . $lineBreak;
+
+            $firstTable = array_key_first($tables);
+            foreach ($tables as $key => $table) {
+                $tableName = $table->{'Tables_in_' . $databaseName};
                 $records = DB::table($tableName)->get();
 
-                $tableData = [
-                    'type' => 'table',
-                    'name' => $tableName,
-                    'data' => $records,
-                ];
-                $data[] = $tableData;
+                $recordsJson = $lineBreak;
+
+                $lastRecord = array_key_last($records->toArray());
+
+                foreach ($records as $key => $record) {
+
+                    $addComma = $lastRecord ==  $key ? "" : ",";
+
+                    $recordsJson .= json_encode($record, JSON_UNESCAPED_UNICODE) . $addComma . $lineBreak;
+                }
+
+                $addComma = $firstTable ==  $key ? "" : ",";
+
+                $data .= $addComma . '{"type":"table","name":"' . $tableName . '","data":' . $lineBreak .  "[$recordsJson]" .  $lineBreak . '}' . $lineBreak;
             }
 
-            $jsonOutput = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His');
+            // Wrap the objects in an array if you want the entire JSON to be an array
+            $jsonOutput = "[$lineBreak" . $data . "]";
 
-            if (! is_dir($dumpFolder)) {
+            $dumpFolder = config('database-dump.folder');
+            $fileName = date('Y_m_d_His') . '.json';
+
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
-            $filePath = "$dumpFolder$fileName.json";
+            $filePath = "$dumpFolder$fileName";
             file_put_contents($filePath, $jsonOutput);
 
-            $this->info('Database dump has been saved to '.$filePath);
+
+            $this->info('Database dump has been saved to ' . $filePath);
 
             $this->call('up');
 
