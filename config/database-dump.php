@@ -12,4 +12,9 @@ return [
     */
 
     'folder' => database_path('dumps/'),
+
+    /*
+     *  Set the chunk size of data to be processed at once.
+    */
+    'chunk_size' => 5000,
 ];
