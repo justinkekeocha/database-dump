@@ -1,197 +1,26 @@
 [
-    {
-        "type": "header",
-        "comment": "Export database to JSON"
-    },
-    {
-        "type": "database",
-        "name": "cykmore"
-    },
-    {
-        "type": "table",
-        "name": "appointments",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "career_field",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "career_opportunity",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "careers",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "countries",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "failed_jobs",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "fields",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "jobs",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "migrations",
-        "data": [
-            {
-                "id": 1,
-                "migration": "2014_10_12_000000_create_users_table",
-                "batch": 1
-            },
-            {
-                "id": 2,
-                "migration": "2014_10_12_100000_create_password_reset_tokens_table",
-                "batch": 1
-            },
-            {
-                "id": 3,
-                "migration": "2018_08_08_100000_create_telescope_entries_table",
-                "batch": 1
-            },
-            {
-                "id": 4,
-                "migration": "2019_08_19_000000_create_failed_jobs_table",
-                "batch": 1
-            },
-            {
-                "id": 5,
-                "migration": "2019_12_14_000001_create_personal_access_tokens_table",
-                "batch": 1
-            },
-            {
-                "id": 6,
-                "migration": "2022_10_30_194700_create_waitlists",
-                "batch": 1
-            },
-            {
-                "id": 7,
-                "migration": "2023_10_09_184942_create_jobs_table",
-                "batch": 1
-            },
-            {
-                "id": 8,
-                "migration": "2023_10_10_213412_create_fields_table",
-                "batch": 1
-            },
-            {
-                "id": 9,
-                "migration": "2023_10_12_122920_create_careers_table",
-                "batch": 1
-            },
-            {
-                "id": 10,
-                "migration": "2023_10_12_123045_create_opportunities_table",
-                "batch": 1
-            },
-            {
-                "id": 11,
-                "migration": "2023_10_12_194559_create_career_field_table",
-                "batch": 1
-            },
-            {
-                "id": 12,
-                "migration": "2023_10_12_194618_create_career_opportunity_table",
-                "batch": 1
-            },
-            {
-                "id": 13,
-                "migration": "2023_10_18_121503_create_appointments_table",
-                "batch": 1
-            },
-            {
-                "id": 14,
-                "migration": "2023_10_19_100526_create_countries_table",
-                "batch": 1
-            },
-            {
-                "id": 15,
-                "migration": "2023_10_19_100527_create_states_table",
-                "batch": 1
-            },
-            {
-                "id": 16,
-                "migration": "2023_10_19_101610_create_user_profiles_table",
-                "batch": 1
-            }
-        ]
-    },
-    {
-        "type": "table",
-        "name": "opportunities",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "password_reset_tokens",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "personal_access_tokens",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "states",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "telescope_entries",
-        "data": [
-            {
-                "sequence": 1,
-                "uuid": "9a803f78-d3d3-4597-9972-3145babfbca5",
-                "batch_id": "9a803f78-e71f-4b33-be4f-dd3239e12577",
-                "family_hash": null,
-                "should_display_on_index": 1,
-                "type": "command",
-                "content": "{\"command\":\"make:command\",\"exit_code\":0,\"arguments\":{\"command\":\"make:command\",\"name\":\"CustomMigrateFresh\"},\"options\":{\"force\":false,\"command\":null,\"test\":false,\"pest\":false,\"help\":false,\"quiet\":false,\"verbose\":false,\"version\":false,\"ansi\":null,\"no-interaction\":false,\"env\":null},\"hostname\":\"DESKTOP-AR0MP77\"}",
-                "created_at": "2023-10-31 12:41:53"
-            }
-        ]
-    },
-    {
-        "type": "table",
-        "name": "telescope_entries_tags",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "telescope_monitoring",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "user_profiles",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "users",
-        "data": []
-    },
-    {
-        "type": "table",
-        "name": "waitlists",
-        "data": []
-    }
+{"type":"header","comment":"Export database to JSON"},
+{"type":"database","name":"cykmore"},
+
+{"type":"table","name":"appointments","data":
+[
+
+]
+},
+{"type":"table","name":"career_field","data":
+[
+{"id":1,"career_id":1,"field_id":1,"created_at":"2023-12-11 04:51:03","updated_at":"2023-12-11 04:51:03"},
+{"id":98,"career_id":86,"field_id":8,"created_at":"2023-12-11 04:51:27","updated_at":"2023-12-11 04:51:27"}
+]
+},
+{"type":"table","name":"career_levels","data":
+[
+{"id":1,"name":"Undergraduate","user_type_id":1,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"},
+{"id":2,"name":"Graduate","user_type_id":1,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"},
+{"id":3,"name":"Professional","user_type_id":1,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"},
+{"id":4,"name":"Consultant","user_type_id":2,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"},
+{"id":5,"name":"Expert","user_type_id":2,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"},
+{"id":6,"name":"Veteran","user_type_id":2,"created_at":"2024-01-01 09:16:14","updated_at":"2024-01-01 09:16:14"}
+]
+}
 ]
