@@ -4,6 +4,10 @@ namespace Justinkekeocha\DatabaseDump;
 
 class DatabaseDump
 {
+    /** 
+     *  Return an array of files in the directory.
+     */
+
     public function getDirectoryListing($directoryPath): array
     {
 
@@ -16,7 +20,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -27,10 +31,17 @@ class DatabaseDump
         }
     }
 
-    public function getLatestDump(): string
-    {
-        $dumpListings = $this->getDirectoryListing(config('database-dump.folder'));
+    /** 
+     * 
+     *  Reverse the array and get the first file in the array.
+     */
 
-        return config('database-dump.folder').end($dumpListings);
+    public function getLatestDump(int $pointer = 0): string
+    {
+        $dumpFolder = config('database-dump.folder');
+
+        $dumpListings  = $this->getDirectoryListing($dumpFolder);
+
+        return $dumpFolder . array_reverse($dumpListings)[$pointer];
     }
 }
