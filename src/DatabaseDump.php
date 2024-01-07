@@ -19,7 +19,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
                     $result[] = $file;
                 }
             }
@@ -42,11 +42,11 @@ class DatabaseDump
     {
         $dumpFolder = config('database-dump.folder');
 
-        $dumpListings  = $this->getDirectoryListing($dumpFolder);
+        $dumpListings = $this->getDirectoryListing($dumpFolder);
 
         //check if the pointer is an integer
-        return  is_int($needle)
-            ? $dumpFolder . array_reverse($dumpListings)[$needle]
+        return is_int($needle)
+            ? $dumpFolder.array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
     }
 }
