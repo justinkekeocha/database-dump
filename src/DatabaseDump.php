@@ -27,7 +27,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
                     $result[] = $file;
                 }
             }
@@ -38,7 +38,6 @@ class DatabaseDump
         }
     }
 
-
     public function getDump(int|string $needle): string
     {
         $dumpFolder = config('database-dump.folder');
@@ -47,7 +46,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         return is_int($needle)
-            ? $dumpFolder . array_reverse($dumpListings)[$needle]
+            ? $dumpFolder.array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
     }
 
@@ -110,7 +109,7 @@ class DatabaseDump
 
         $dumpTables = is_array($dumpTables) ? $dumpTables : $this->dumpTables;
 
-        if (!$dumpTables) {
+        if (! $dumpTables) {
             throw new \InvalidArgumentException('No dump tables provided.');
         }
 
