@@ -12,7 +12,6 @@ class DatabaseDump
 
     public $tableData;
 
-
     /**
      *  Return an array of files in the directory.
      */
@@ -28,7 +27,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
                     $result[] = $file;
                 }
             }
@@ -55,7 +54,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         return is_int($needle)
-            ? $dumpFolder . array_reverse($dumpListings)[$needle]
+            ? $dumpFolder.array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
     }
 
@@ -74,8 +73,7 @@ class DatabaseDump
     /**
      * Resolves and sets the table name based on the provided model or table name.
      */
-
-    private function setResolvedTableName(string|null $modelOrTableName = null): string
+    private function setResolvedTableName(?string $modelOrTableName = null): string
     {
 
         if ($modelOrTableName !== null) {
@@ -106,12 +104,12 @@ class DatabaseDump
     /**
      * Get the data of a table in a dump.
      */
-    public function getTableData(string|null $modelOrTableName = null, array|null $dumpTables = null): self
+    public function getTableData(?string $modelOrTableName = null, ?array $dumpTables = null): self
     {
 
         $dumpTables = is_array($dumpTables) ? $dumpTables : $this->dumpTables;
 
-        if (!$dumpTables) {
+        if (! $dumpTables) {
             throw new \InvalidArgumentException('No dump tables provided.');
         }
 
@@ -131,13 +129,13 @@ class DatabaseDump
     /**
      * Seed a table with data from a dump.
      */
-    public function seed(string|null $modelOrTableName = null, array|null $tableData = null, int|null $chunkLength = null, callable|null $formatRowCallback = null): self
+    public function seed(?string $modelOrTableName = null, ?array $tableData = null, ?int $chunkLength = null, ?callable $formatRowCallback = null): self
     {
 
         $resolvedTableName = $this->setResolvedTableName($modelOrTableName);
 
         // Use the provided if given, otherwise use the stored one.
-        $tableData =  $tableData ?? $this->tableData;
+        $tableData = $tableData ?? $this->tableData;
 
         $chunkLength = $chunkLength ?? config('database-dump.chunk_length');
 
@@ -154,6 +152,7 @@ class DatabaseDump
                 DB::table($resolvedTableName)->insert($chunk);
             }
         }
+
         return $this;
     }
 }
