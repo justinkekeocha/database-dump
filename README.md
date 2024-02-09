@@ -15,6 +15,10 @@ This package is inspired from the export function in phpMyAdmin.
 -   [Usage](#usage)
     -   [Dump database data](#dump-database-data)
     -   [Seed database with dump file](#seed-database-with-dump-file)
+    -   [Get specific dump file](#get-specific-dump-file)
+    -   [Get dump tables](#get-dump-tables)
+    -   [Get table data](#get-table-data)
+    -   [Seed table](#seed-table)
 -   [Sample](#sample)
 -   [Testing](#testing)
 -   [Changelog](#changelog)
@@ -96,9 +100,9 @@ class DatabaseSeeder extends Seeder
 
         $dump = DatabaseDump::getLatestDump();
 
-        $this->command->outputComponents()->info("Using dump: $dump");
+        $this->command->outputComponents()->info("Using dump: $dump->dumpFilePath");
 
-        $dumpTables =  DatabaseDump::getDumpTables($dump);
+        $dumpTables =  $dump->getDumpTables();
 
         $this->call([
             UserSeeder::class,
@@ -127,7 +131,7 @@ class UserSeeder extends Seeder
 
         //You can also use table name instead of model.
 
-        //$dumpTables->getTableData('users')->seed();
+        $dumpTables->getTableData('users')->seed();
     }
 }
 
@@ -168,6 +172,63 @@ class CountrySeeder extends Seeder
     });
     }
 }
+
+```
+
+### Get specific dump file
+
+```php
+
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+
+//Get dump by position in array of directory listing
+//Array starts from latest dump file in specified config('database-dump.folder')
+DatabaseDump::getDump(1); //Get second dump in the array.
+
+//Get dump by dump file name
+DatabaseDump::getDump("2024_01_08_165939.json");
+
+//Get the latest dump
+DatabaseDump::getLatestDump();
+
+```
+
+### Get dump tables
+
+Get the tables in a dump file and the records in each table.
+
+```php
+
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+
+DatabaseDump::getLatestDump()->getDumpTables();
+
+```
+
+### Get table data
+
+Get the data in a table in a dump file.
+
+```php
+
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+use App\Models\User;
+
+DatabaseDump::getLatestDump()->getDumpTables()->getTableData(User::class);
+
+//You can also specify the table name instead of using model
+DatabaseDump::getLatestDump()->getDumpTables()->getTableData('users');
+
+```
+
+### Seed table
+
+```php
+
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+use App\Models\User;
+
+DatabaseDump::getLatestDump()->getDumpTables()->getTableData(User::class)->seed();
 
 ```
 
