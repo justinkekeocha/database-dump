@@ -168,6 +168,7 @@ class DatabaseDump
             }
         }
 
+        
         return $this;
     }
 }
