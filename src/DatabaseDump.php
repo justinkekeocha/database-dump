@@ -8,6 +8,8 @@ class DatabaseDump
 {
     protected $resolvedTableName;
 
+    public $dumpFilePath;
+
     public $dumpTables;
 
     public $tableData;
@@ -38,23 +40,28 @@ class DatabaseDump
         }
     }
 
+    /**
+     *  Get a dump file.
+     */
 
-    public function getDump(int|string $needle): string
+    public function getDump(int|string $needle): self
     {
         $dumpFolder = config('database-dump.folder');
 
         $dumpListings = $this->getDirectoryListing($dumpFolder);
 
         //check if the pointer is an integer
-        return is_int($needle)
+        $this->dumpFilePath =  is_int($needle)
             ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
+
+        return $this;
     }
 
     /**
      *  Reverse the array and get the first file in the array.
      */
-    public function getLatestDump(int|string $needle = 0): string
+    public function getLatestDump(int|string $needle = 0): self
     {
         return $this->getDump($needle);
     }
@@ -91,9 +98,16 @@ class DatabaseDump
     /**
      * Get the tables in a dump.
      */
-    public function getDumpTables(string $dumpFilePath): self
+    public function getDumpTables(?string $dumpFilePath = null): self
     {
-        $fileContents = file_get_contents($dumpFilePath);
+
+        $this->dumpFilePath = $dumpFilePath ?? $this->dumpFilePath;
+
+        if (!$this->dumpFilePath) {
+            throw new \InvalidArgumentException('No dump file provided.');
+        }
+
+        $fileContents = file_get_contents($this->dumpFilePath);
         $jsonData = json_decode($fileContents, true);
         $dumpTables = array_slice($jsonData, 2);
 
@@ -108,21 +122,21 @@ class DatabaseDump
     public function getTableData(?string $modelOrTableName = null, ?array $dumpTables = null): self
     {
 
-        $dumpTables = is_array($dumpTables) ? $dumpTables : $this->dumpTables;
+        $this->dumpTables = is_array($dumpTables) ? $dumpTables : $this->dumpTables;
 
-        if (!$dumpTables) {
+        if (!$this->dumpTables) {
             throw new \InvalidArgumentException('No dump tables provided.');
         }
 
         $resolvedTableName = $this->setResolvedTableName($modelOrTableName);
 
-        $tableKey = array_search($resolvedTableName, array_column($dumpTables, 'name'));
+        $tableKey = array_search($resolvedTableName, array_column($this->dumpTables, 'name'));
 
         if ($tableKey === false) {
             throw new \InvalidArgumentException("The table '{$resolvedTableName}' does not exist in the dump provided.");
         }
 
-        $this->tableData = $dumpTables[$tableKey]['data'];
+        $this->tableData = $this->dumpTables[$tableKey]['data'];
 
         return $this;
     }
@@ -136,12 +150,12 @@ class DatabaseDump
         $resolvedTableName = $this->setResolvedTableName($modelOrTableName);
 
         // Use the provided if given, otherwise use the stored one.
-        $tableData = $tableData ?? $this->tableData;
+        $this->tableData = $tableData ?? $this->tableData;
 
         $chunkLength = $chunkLength ?? config('database-dump.chunk_length');
 
-        if ($tableData) {
-            $chunks = array_chunk($tableData, $chunkLength);
+        if ($this->tableData) {
+            $chunks = array_chunk($this->tableData, $chunkLength);
             foreach ($chunks as $chunk) {
                 if (is_callable($formatRowCallback)) {
                     $formattedChunk = [];
