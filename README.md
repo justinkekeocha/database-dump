@@ -9,6 +9,19 @@ You can also use this package to generate a dump of your database in JSON format
 
 This package is inspired from the export function in phpMyAdmin.
 
+## Contents
+
+-   [Installation](#installation)
+-   [Usage](#usage)
+    -   [Dump database data](#dump-database-data)
+    -   [Seed database with dump file](#seed-database-with-dump-file)
+-   [Sample](#sample)
+-   [Testing](#testing)
+-   [Changelog](#changelog)
+-   [Contributing](#contributing)
+-   [Credits](#credits)
+-   [License](#license)
+
 ## Installation
 
 You can install the package via composer:
@@ -48,12 +61,114 @@ return [
 
 ## Usage
 
+### Dump database data
+
 ```php
-# Dump database records before running migrations
+# Dump database data before running migrations
 php artisan migrate:fresh
 
-# Dump database records
+# Dump database data
 php artisan database:dump
+```
+
+### Seed database with dump file
+
+Load dump file from DatabaseSeeder and pass the dump tables through the `$this->call` method in the seeder class:
+
+```php
+
+# database/seeders/DatabaseSeeder.php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+use Database\Seeders\UserSeeder;
+
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+
+        $dump = DatabaseDump::getLatestDump();
+
+        $this->command->outputComponents()->info("Using dump: $dump");
+
+        $dumpTables =  DatabaseDump::getDumpTables($dump);
+
+        $this->call([
+            UserSeeder::class,
+        ], parameters: compact('dumpTables'));
+    }
+}
+```
+
+The dump tables data are now available in individual seeder files and you can now seed the table with the data provided:
+
+```php
+# database/seeders/UserSeeder.php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+
+class UserSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run($dumpTables): void
+    {
+        $dumpTables->getTableData(User::class)->seed();
+
+        //You can also use table name instead of model.
+
+        //$dumpTables->getTableData('users')->seed();
+    }
+}
+
+```
+
+You can manipulate the rows before seeding:
+
+```php
+# database/seeders/CountrySeeder.php
+
+namespace Database\Seeders;
+
+use App\Models\Country;
+
+class CountrySeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run($dumpTables): void
+    {
+        $dumpTables->getTableData(Country::class)->seed(formatRowCallback: function ($row) {
+                //331.69 ms
+                return [
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'code' => 22
+                ];
+
+                //OR
+
+                //338.95 ms
+                $changes = [
+                    'code' => '22'
+                ];
+
+                return  collect($row)->only(['id', 'name'])->merge($changes)->all();
+    });
+    }
+}
+
 ```
 
 ## Sample
@@ -80,7 +195,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Kekeocha Justin Chetachukwu](https://github.com/justinkekeocha)
+-   [Kekeocha Justin Chetachukwu](https://github.com/justinkekeocha)
 
 ## License
 
