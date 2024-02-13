@@ -43,15 +43,13 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
 
             // Define target directory
             $targetDirectory = base_path('app/Console/Commands');
-
-            // Create target directory if it doesn't exist
-            $filesystem->ensureDirectoryExists($targetDirectory);
-
             // Define target file path
             $target = $targetDirectory . '/FreshCommand.php';
 
-
             if (!$filesystem->exists($target)) {
+                // Create target directory if it doesn't exist
+                $filesystem->ensureDirectoryExists($targetDirectory);
+
                 // Copy the file, creating it if it doesn't exist
                 $filesystem->put($target, $filesystem->get($source));
             }
