@@ -29,23 +29,23 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
 
             $this->publishes([
-                __DIR__.'/../resources/stubs/.gitignore.stub' => config('database-dump.folder').'.gitignore',
+                __DIR__ . '/../resources/stubs/.gitignore.stub' => config('database-dump.folder') . '.gitignore',
             ], 'database-dump-config');
 
             $filesystem = (new FileSystem);
 
-            $destination = base_path('app/Console/Commands/FreshCommand.php');
-            $source = __DIR__.'/../src/Commands/FreshCommand.php';
+            $target = base_path('app/Console/Commands/FreshCommand.php');
+            $source = __DIR__ . '/../src/Commands/FreshCommand.php';
 
-            if (! $filesystem->exists($destination)) {
-                $filesystem->copy($destination, $source);
+            if (!$filesystem->exists($target)) {
+                $filesystem->copy($source, $target);
             }
 
             $target = base_path('tests/Feature/DatabaseDump');
-            $source = __DIR__.'/../src/tests/Feature';
+            $source = __DIR__ . '/../src/tests/Feature';
 
             // Check if the directory exists before copying
-            if (! $filesystem->isDirectory($target)) {
+            if (!$filesystem->isDirectory($target)) {
                 $filesystem->copyDirectory($source, $target);
             }
         }
