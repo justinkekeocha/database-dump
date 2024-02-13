@@ -3,9 +3,9 @@
 namespace Justinkekeocha\DatabaseDump;
 
 use Illuminate\Filesystem\Filesystem;
-use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 
 class DatabaseDumpServiceProvider extends PackageServiceProvider
 {
@@ -29,17 +29,26 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
         if ($this->app->runningInConsole()) {
 
             $this->publishes([
-                __DIR__.'/../resources/stubs/.gitignore.stub' => config('database-dump.folder').'.gitignore',
+                __DIR__ . '/../resources/stubs/.gitignore.stub' => config('database-dump.folder') . '.gitignore',
             ], 'database-dump-config');
-
-            $sourcePath = __DIR__.'/../src/tests/Feature';
-            $destinationPath = base_path('tests/Feature/DatabaseDump');
 
             $filesystem = (new FileSystem);
 
+
+            $target = base_path('app/Console/Commands/FreshCommand.php');
+            $source = __DIR__ . '/../src/Commands/FreshCommand.php';
+
+
+            if (!$filesystem->exists($target)) {
+                $filesystem->copy($source, $target);
+            }
+
+            $target = base_path('tests/Feature/DatabaseDump');
+            $source = __DIR__ . '/../src/tests/Feature';
+
             // Check if the directory exists before copying
-            if (! $filesystem->isDirectory($destinationPath)) {
-                $filesystem->copyDirectory($sourcePath, $destinationPath);
+            if (!$filesystem->isDirectory($target)) {
+                $filesystem->copyDirectory($source, $target);
             }
         }
     }
