@@ -3,9 +3,9 @@
 namespace Justinkekeocha\DatabaseDump;
 
 use Illuminate\Filesystem\Filesystem;
+use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Justinkekeocha\DatabaseDump\Commands\DatabaseDumpCommand;
 
 class DatabaseDumpServiceProvider extends PackageServiceProvider
 {
@@ -33,7 +33,6 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
             ], 'database-dump-config');
 
             $filesystem = (new FileSystem);
-
 
             $destination = base_path('app/Console/Commands/FreshCommand.php');
             $source = __DIR__ . '/../src/Commands/FreshCommand.php';
