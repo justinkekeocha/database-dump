@@ -2,6 +2,10 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## fix copying of commands - 2024-02-13
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/1.4...1.4.1
+
 ## 1.4 - 2024-02-09
 
 Make more methods chainable
