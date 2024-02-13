@@ -35,12 +35,12 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
             $filesystem = (new FileSystem);
 
 
-            $target = base_path('app/Console/Commands/FreshCommand.php');
+            $destination = base_path('app/Console/Commands/FreshCommand.php');
             $source = __DIR__ . '/../src/Commands/FreshCommand.php';
 
 
-            if (!$filesystem->exists($target)) {
-                $filesystem->copy($source, $target);
+            if (!$filesystem->exists($destination)) {
+                $filesystem->copy($destination, $source);
             }
 
             $target = base_path('tests/Feature/DatabaseDump');
