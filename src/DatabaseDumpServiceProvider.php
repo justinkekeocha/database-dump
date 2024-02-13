@@ -34,16 +34,36 @@ class DatabaseDumpServiceProvider extends PackageServiceProvider
 
             $filesystem = (new FileSystem);
 
-            $target = base_path('app/Console/Commands/FreshCommand.php');
+            /**
+             * Copy commands
+             *
+             */
+
             $source = __DIR__ . '/../src/Commands/FreshCommand.php';
 
+            // Define target directory
+            $targetDirectory = base_path('app/Console/Commands');
+
+            // Create target directory if it doesn't exist
+            $filesystem->ensureDirectoryExists($targetDirectory);
+
+            // Define target file path
+            $target = $targetDirectory . '/FreshCommand.php';
+
+
             if (!$filesystem->exists($target)) {
-                fopen($target, "w");
-                $filesystem->copy($source, $target);
+                // Copy the file, creating it if it doesn't exist
+                $filesystem->put($target, $filesystem->get($source));
             }
 
-            $target = base_path('tests/Feature/DatabaseDump');
+            /**
+             * Copy tests
+             *
+             */
+
             $source = __DIR__ . '/../src/tests/Feature';
+
+            $target = base_path('tests/Feature/DatabaseDump');
 
             // Check if the directory exists before copying
             if (!$filesystem->isDirectory($target)) {
