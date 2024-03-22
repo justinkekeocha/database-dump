@@ -2,6 +2,16 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## add support for laravel 9 & 10 - 2024-03-22
+
+### What's Changed
+
+* chore(deps): bump ramsey/composer-install from 2 to 3 by @dependabot in https://github.com/justinkekeocha/database-dump/pull/2
+
+Illuminate contract was update to support multiple versions
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/1.4.1...1.5
+
 ## fix copying of commands - 2024-02-13
 
 **Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/1.4...1.4.1
