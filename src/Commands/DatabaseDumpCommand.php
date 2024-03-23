@@ -37,14 +37,14 @@ class DatabaseDumpCommand extends Command
             $lineBreak = "\n";
             $comma = ',';
 
-            $databaseHeader = "[$lineBreak".'{"type":"header","comment":"Export database to JSON"}'.$comma.$lineBreak;
-            $databaseHeader .= '{"type":"database","name":"'.$databaseName.'"}'.$comma.$lineBreak;
+            $databaseHeader = "[$lineBreak" . '{"type":"header","comment":"Export database to JSON"}' . $comma . $lineBreak;
+            $databaseHeader .= '{"type":"database","name":"' . $databaseName . '"}' . $comma . $lineBreak;
 
             //Create file to stream records into
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His').'.json';
+            $fileName = date('Y_m_d_His') . '.json';
 
-            if (! is_dir($dumpFolder)) {
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
@@ -55,9 +55,9 @@ class DatabaseDumpCommand extends Command
             foreach ($tables as $tableKey => $table) {
 
                 //Table header
-                $tableName = $table->{'Tables_in_'.$databaseName};
+                $tableName = $table->{'Tables_in_' . $databaseName};
 
-                $tableHeader = $lineBreak.'{"type":"table","name":"'.$tableName.'","data":'.$lineBreak."[$lineBreak";
+                $tableHeader = $lineBreak . '{"type":"table","name":"' . $tableName . '","data":' . $lineBreak . "[$lineBreak";
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
@@ -74,7 +74,24 @@ class DatabaseDumpCommand extends Command
                     foreach ($records as $record) {
                         //Done like this in case there are empty tables
                         $addFinishing = $counter != $numberOfTableRecords ? "$comma$lineBreak" : '';
-                        $tableData .= json_encode($record, JSON_UNESCAPED_UNICODE).$addFinishing;
+
+                        $encodedJSON = json_encode($record, JSON_UNESCAPED_UNICODE);
+
+                        if ($encodedJSON === false) {
+                            //If malformed JSON filter the record
+                            $filteredData = [];
+
+                            foreach ($record as $key => $value) {
+                                // If boolean or UTF-8 encoded, keep the value
+                                if (is_bool($value) || mb_detect_encoding($value, 'UTF-8', true)) {
+                                    $filteredData[$key] = $value;
+                                }
+                            }
+
+                            $encodedJSON = json_encode($filteredData, JSON_UNESCAPED_UNICODE);
+                        }
+
+                        $tableData .= "$encodedJSON$addFinishing";
 
                         $counter++;
                     }
@@ -88,7 +105,7 @@ class DatabaseDumpCommand extends Command
 
                 file_put_contents($filePath, $addFinishing, FILE_APPEND);
             }
-            $this->components->info('Database dump has been saved to '.$filePath);
+            $this->components->info('Database dump has been saved to ' . $filePath);
 
             $this->call('up');
 
