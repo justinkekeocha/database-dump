@@ -2,6 +2,12 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## fix empty rows in tables - 2024-03-23
+
+This release fixes empty rows in tables due to character encoding
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/1.5...1.5.1
+
 ## add support for laravel 9 & 10 - 2024-03-22
 
 ### What's Changed
