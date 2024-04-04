@@ -2,11 +2,17 @@
 
 namespace Justinkekeocha\DatabaseDump\Commands;
 
+use SplFileObject;
+use Spatie\Fork\Fork;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\InteractsWithTime;
+use Illuminate\Console\View\Components\TwoColumnDetail;
 
 class DatabaseDumpCommand extends Command
 {
+    use InteractsWithTime;
+
     /**
      * The name and signature of the console command.
      *
@@ -21,6 +27,7 @@ class DatabaseDumpCommand extends Command
      */
     protected $description = 'Dump all table records in a JSON format';
 
+
     /**
      * Execute the console command.
      */
@@ -29,35 +36,42 @@ class DatabaseDumpCommand extends Command
         try {
             $this->call('down');
 
-            $this->components->info('Generating dump....');
+            with(new TwoColumnDetail($this->getOutput()))->render(
+                'Database dump',
+                "<fg=yellow;options=bold>GENERATING</>"
+            );
 
-            $databaseName = config('database.connections.mysql.database');
+            $startTime = microtime(true);
+
+            $databaseName = DB::connection()->getDatabaseName();
+
             $tables = DB::select('SHOW TABLES');
 
-            $lineBreak = "\n";
-            $comma = ',';
-
-            $databaseHeader = "[$lineBreak".'{"type":"header","comment":"Export database to JSON"}'.$comma.$lineBreak;
-            $databaseHeader .= '{"type":"database","name":"'.$databaseName.'"}'.$comma.$lineBreak;
 
             //Create file to stream records into
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His').'.json';
+            $fileName = date('Y_m_d_His') . '.json';
 
-            if (! is_dir($dumpFolder)) {
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
             $filePath = "$dumpFolder$fileName";
 
-            file_put_contents($filePath, $databaseHeader);
+            $lineBreak = "\n";
+            $comma = ',';
+
+            $databaseHeader = "[$lineBreak" . '{"type":"header","comment":"Export database to JSON"}' . $comma . $lineBreak;
+            $databaseHeader .= '{"type":"database","name":"' . $databaseName . '"}' . $comma . $lineBreak;
+            file_put_contents($filePath,  $databaseHeader, FILE_APPEND);
+
 
             foreach ($tables as $tableKey => $table) {
 
                 //Table header
-                $tableName = $table->{'Tables_in_'.$databaseName};
+                $tableName = $table->{'Tables_in_' . $databaseName};
 
-                $tableHeader = $lineBreak.'{"type":"table","name":"'.$tableName.'","data":'.$lineBreak."[$lineBreak";
+                $tableHeader = $lineBreak . '{"type":"table","name":"' . $tableName . '","data":' . $lineBreak . "[$lineBreak";
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
@@ -71,6 +85,7 @@ class DatabaseDumpCommand extends Command
 
                 $table->orderBy($orderByColumn)->chunk(config('database-dump.chunk_length'), function ($records) use (&$counter, $numberOfTableRecords, $lineBreak, $comma, $filePath) {
                     $tableData = '';
+
                     foreach ($records as $record) {
                         //Done like this in case there are empty tables
                         $addFinishing = $counter != $numberOfTableRecords ? "$comma$lineBreak" : '';
@@ -107,7 +122,17 @@ class DatabaseDumpCommand extends Command
 
                 file_put_contents($filePath, $addFinishing, FILE_APPEND);
             }
-            $this->components->info('Database dump has been saved to '.$filePath);
+
+            $runTime = $this->runTimeForHumans($startTime);
+
+            with(new TwoColumnDetail($this->getOutput()))->render(
+                'Database dump',
+                "<fg=gray>$runTime</> <fg=green;options=bold>DONE</>"
+            );
+
+            $this->newLine();
+
+            $this->components->info("Database dump saved to $filePath");
 
             $this->call('up');
 
@@ -124,7 +149,7 @@ class DatabaseDumpCommand extends Command
      * @param  string  $tableName
      * @return string
      */
-    private function getOrderByColumn($tableName)
+    private function getOrderByColumn(string $tableName): string
     {
         $columns = DB::getSchemaBuilder()->getColumnListing($tableName);
 
