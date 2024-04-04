@@ -2,12 +2,10 @@
 
 namespace Justinkekeocha\DatabaseDump\Commands;
 
-use SplFileObject;
-use Spatie\Fork\Fork;
 use Illuminate\Console\Command;
+use Illuminate\Console\View\Components\TwoColumnDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\InteractsWithTime;
-use Illuminate\Console\View\Components\TwoColumnDetail;
 
 class DatabaseDumpCommand extends Command
 {
@@ -27,7 +25,6 @@ class DatabaseDumpCommand extends Command
      */
     protected $description = 'Dump all table records in a JSON format';
 
-
     /**
      * Execute the console command.
      */
@@ -38,7 +35,7 @@ class DatabaseDumpCommand extends Command
 
             with(new TwoColumnDetail($this->getOutput()))->render(
                 'Database dump',
-                "<fg=yellow;options=bold>GENERATING</>"
+                '<fg=yellow;options=bold>GENERATING</>'
             );
 
             $startTime = microtime(true);
@@ -47,12 +44,11 @@ class DatabaseDumpCommand extends Command
 
             $tables = DB::select('SHOW TABLES');
 
-
             //Create file to stream records into
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His') . '.json';
+            $fileName = date('Y_m_d_His').'.json';
 
-            if (!is_dir($dumpFolder)) {
+            if (! is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
@@ -61,17 +57,16 @@ class DatabaseDumpCommand extends Command
             $lineBreak = "\n";
             $comma = ',';
 
-            $databaseHeader = "[$lineBreak" . '{"type":"header","comment":"Export database to JSON"}' . $comma . $lineBreak;
-            $databaseHeader .= '{"type":"database","name":"' . $databaseName . '"}' . $comma . $lineBreak;
-            file_put_contents($filePath,  $databaseHeader, FILE_APPEND);
-
+            $databaseHeader = "[$lineBreak".'{"type":"header","comment":"Export database to JSON"}'.$comma.$lineBreak;
+            $databaseHeader .= '{"type":"database","name":"'.$databaseName.'"}'.$comma.$lineBreak;
+            file_put_contents($filePath, $databaseHeader, FILE_APPEND);
 
             foreach ($tables as $tableKey => $table) {
 
                 //Table header
-                $tableName = $table->{'Tables_in_' . $databaseName};
+                $tableName = $table->{'Tables_in_'.$databaseName};
 
-                $tableHeader = $lineBreak . '{"type":"table","name":"' . $tableName . '","data":' . $lineBreak . "[$lineBreak";
+                $tableHeader = $lineBreak.'{"type":"table","name":"'.$tableName.'","data":'.$lineBreak."[$lineBreak";
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
@@ -145,9 +140,6 @@ class DatabaseDumpCommand extends Command
 
     /**
      * Get a suitable column for ordering if 'id' column is not present.
-     *
-     * @param  string  $tableName
-     * @return string
      */
     private function getOrderByColumn(string $tableName): string
     {
