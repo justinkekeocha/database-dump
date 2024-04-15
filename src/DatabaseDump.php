@@ -31,7 +31,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -53,7 +53,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         $this->filePath = is_int($needle)
-            ? $dumpFolder.array_reverse($dumpListings)[$needle]
+            ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -98,47 +98,26 @@ class DatabaseDump
     {
         $file = fopen($this->filePath, 'r');
 
-        fseek($file, $offset);
-
         // Ensure the file is opened
-        if (! $file) {
+        if (!$file) {
             throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
-        $buffer = ''; // Initialize a buffer to accumulate JSON text
-        $inJson = false; // Flag to track whether we are inside a JSON structur
+        fseek($file, $offset);
+
+        $streamLength = config('database-dump.stream_length');
 
         try {
 
-            while (! feof($file)) {
-                $line = fgets($file);
+            while (!feof($file)) {
+                $line = stream_get_line($file, $streamLength, '}');
+                $line = trim("$line", "[,]");
+                $line = "$line}";
 
                 $this->fileOffset = ftell($file);
 
-                //if File format is still in line with package dump generator
-                $decodeJson = json_decode(substr($line, 0, -2));
-                if ($decodeJson) {
-                    yield $decodeJson;
-                } else {
-                    //This was added in case file wast formmated by mistake with prettier
-                    $trimmedLine = trim($line);
-                    if ($trimmedLine == '{') {
-                        // Start of a JSON object
-                        $inJson = true;
-                        $buffer .= $trimmedLine;
-                    } elseif ($inJson) {
-                        $buffer .= $trimmedLine;
-                        if ($trimmedLine == '},' || $trimmedLine == '}') {
-                            // End of a JSON object
-                            $json = rtrim($buffer, ','); // Remove any trailing comma
-                            $decoded = json_decode($json);
-                            if ($decoded) {
-                                yield $decoded;
-                            }
-                            $buffer = ''; // Reset buffer after yielding the decoded JSON
-                            $inJson = false; // Reset JSON flag
-                        }
-                    }
+                if ($decodedJson = json_decode($line)) {
+                    yield  $decodedJson;
                 }
             }
         } finally {
@@ -170,7 +149,7 @@ class DatabaseDump
         This ensures that subsequent seed calls on the same dump file instance don't start afresh,
         But starts gets the already saved offset for the particular table and starts reading from there
         */
-        if (! $this->schema) {
+        if (!$this->schema) {
             $this->generateSchema();
         }
 
@@ -195,7 +174,7 @@ class DatabaseDump
             );
 
             //Check header tag
-            if (! $isHeader && ! $isFooter) {
+            if (!$isHeader && !$isFooter) {
                 $rowToArray = (array) $row;
                 if (is_callable($formatRowCallback)) {
                     $rowToArray = call_user_func($formatRowCallback, $rowToArray);
