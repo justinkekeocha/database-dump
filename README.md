@@ -16,8 +16,6 @@ This package is inspired from the export function in phpMyAdmin.
     -   [Dump database data](#dump-database-data)
     -   [Seed database with dump file](#seed-database-with-dump-file)
     -   [Get specific dump file](#get-specific-dump-file)
-    -   [Get dump tables](#get-dump-tables)
-    -   [Get table data](#get-table-data)
     -   [Seed table](#seed-table)
 -   [Sample](#sample)
 -   [Testing](#testing)
@@ -98,15 +96,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        $dump = DatabaseDump::getLatestDump();
+         $databaseDump = DatabaseDump::getLatestDump("save/2024_04_14_233109.json");
 
-        $this->command->outputComponents()->info("Using dump: $dump->dumpFilePath");
+        $this->command->outputComponents()->info("Using dump:  $databaseDump->filePath");
 
-        $dumpTables =  $dump->getDumpTables();
 
         $this->call([
             UserSeeder::class,
-        ], parameters: compact('dumpTables'));
+        ], parameters: compact('databaseDump'));
     }
 }
 ```
@@ -125,13 +122,13 @@ class UserSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run($dumpTables): void
+    public function run($databaseDump): void
     {
-        $dumpTables->getTableData(User::class)->seed();
+        $databaseDump->seed(User::class);
 
         //You can also use table name instead of model.
 
-        $dumpTables->getTableData('users')->seed();
+        $databaseDump->seed('users');
     }
 }
 
@@ -151,9 +148,9 @@ class CountrySeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run($dumpTables): void
+    public function run($databaseDump): void
     {
-        $dumpTables->getTableData(Country::class)->seed(formatRowCallback: function ($row) {
+        $databaseDump->seed(Country::class, formatRowCallback: function ($row) {
                 //331.69 ms
                 return [
                     'id' => $row['id'],
@@ -193,42 +190,21 @@ DatabaseDump::getLatestDump();
 
 ```
 
-### Get dump tables
-
-Get the tables in a dump file and the records in each table.
-
-```php
-
-use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
-
-DatabaseDump::getLatestDump()->getDumpTables();
-
-```
-
-### Get table data
-
-Get the data in a table in a dump file.
-
-```php
-
-use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
-use App\Models\User;
-
-DatabaseDump::getLatestDump()->getDumpTables()->getTableData(User::class);
-
-//You can also specify the table name instead of using model
-DatabaseDump::getLatestDump()->getDumpTables()->getTableData('users');
-
-```
-
 ### Seed table
 
 ```php
 
 use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+use App\Models\Country;
+use App\Models\Timezone;
 use App\Models\User;
 
-DatabaseDump::getLatestDump()->getDumpTables()->getTableData(User::class)->seed();
+DatabaseDump::getLatestDump()->seed(User::class);
+
+//You can seed multiple tables at once.
+DatabaseDump::getLatestDump()->seed(Country::class)
+->seed(Timezone::class)
+->seed(User::class);
 
 ```
 
