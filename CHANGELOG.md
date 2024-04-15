@@ -2,6 +2,12 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## 2.1 - 2024-04-15
+
+This version uses `stream_get_line`for better JSON detection.
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/2.0...2.1
+
 ## 2.0 - 2024-04-15
 
 This version uses a memory efficient method of streaming the records in the dump file using `fread` function and yielding the result. This entails that there is only one record in memory at any point in time. With this approach, this package can read a theoretical large size of file without exhausting memory.
