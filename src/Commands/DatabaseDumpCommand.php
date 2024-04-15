@@ -3,9 +3,9 @@
 namespace Justinkekeocha\DatabaseDump\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Console\View\Components\TwoColumnDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\InteractsWithTime;
+use Illuminate\Console\View\Components\TwoColumnDetail;
 
 class DatabaseDumpCommand extends Command
 {
@@ -25,6 +25,7 @@ class DatabaseDumpCommand extends Command
      */
     protected $description = 'Dump all table records in a JSON format';
 
+
     /**
      * Execute the console command.
      */
@@ -35,7 +36,7 @@ class DatabaseDumpCommand extends Command
 
             with(new TwoColumnDetail($this->getOutput()))->render(
                 'Database dump',
-                '<fg=yellow;options=bold>GENERATING</>'
+                "<fg=yellow;options=bold>GENERATING</>"
             );
 
             $startTime = microtime(true);
@@ -44,51 +45,57 @@ class DatabaseDumpCommand extends Command
 
             $tables = DB::select('SHOW TABLES');
 
+
             //Create file to stream records into
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His').'.json';
+            $fileName = date('Y_m_d_His') . '.json';
 
-            if (! is_dir($dumpFolder)) {
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
             $filePath = "$dumpFolder$fileName";
 
             $lineBreak = "\n";
-            $comma = ',';
 
-            $databaseHeader = "[$lineBreak".'{"type":"header","comment":"Export database to JSON"}'.$comma.$lineBreak;
-            $databaseHeader .= '{"type":"database","name":"'.$databaseName.'"}'.$comma.$lineBreak;
-            file_put_contents($filePath, $databaseHeader, FILE_APPEND);
+            $databaseHeader = "[$lineBreak" .
+                '{"markup":"header","type":"database","name":"' . $databaseName . '","comment":"Export database to JSON", "version":"2"},' . $lineBreak .
+                '{"markup":"footer","type":"database","name":"' . $databaseName . '"},' . "$lineBreak$lineBreak";
+
+
+            file_put_contents($filePath,  $databaseHeader, FILE_APPEND);
+
 
             foreach ($tables as $tableKey => $table) {
 
                 //Table header
-                $tableName = $table->{'Tables_in_'.$databaseName};
+                $tableName = $table->{'Tables_in_' . $databaseName};
 
-                $tableHeader = $lineBreak.'{"type":"table","name":"'.$tableName.'","data":'.$lineBreak."[$lineBreak";
+                $table = DB::table($tableName);
+
+                $numberOfTableRecords = $table->count();
+
+                $tableHeaderFinishing = $numberOfTableRecords > 0 ? "$lineBreak$lineBreak" : "$lineBreak";
+
+                $tableHeader =  '{"markup":"header","type":"table","name":"' . $tableName . '"},' .  $tableHeaderFinishing;
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
 
                 // Chunk and stream table records
-                $table = DB::table($tableName);
                 $orderByColumn = $this->getOrderByColumn($tableName);
 
-                $numberOfTableRecords = $table->count();
                 $counter = 1;
 
-                $table->orderBy($orderByColumn)->chunk(config('database-dump.chunk_length'), function ($records) use (&$counter, $numberOfTableRecords, $lineBreak, $comma, $filePath) {
+                $table->orderBy($orderByColumn)->chunk(config('database-dump.chunk_length'), function ($records) use (&$counter, $lineBreak, $filePath) {
                     $tableData = '';
 
                     foreach ($records as $record) {
-                        //Done like this in case there are empty tables
-                        $addFinishing = $counter != $numberOfTableRecords ? "$comma$lineBreak" : '';
+
 
                         $encodedJSON = json_encode($record, JSON_UNESCAPED_UNICODE);
-
+                        //If malformed JSON filter the record
                         if ($encodedJSON === false) {
-                            //If malformed JSON filter the record
                             $filteredData = [];
 
                             foreach ($record as $key => $value) {
@@ -102,18 +109,17 @@ class DatabaseDumpCommand extends Command
                         }
 
                         if ($encodedJSON) {
-                            $tableData .= "$encodedJSON$addFinishing";
+                            $tableData .= "$encodedJSON,$lineBreak";
                         }
-
                         $counter++;
                     }
-
                     file_put_contents($filePath, "$tableData", FILE_APPEND);
                 });
 
-                //If not last table, add comma else add closing bracket
-                $tableEnding = "$lineBreak]$lineBreak}";
-                $addFinishing = array_key_last($tables) == $tableKey ? "$tableEnding$lineBreak]" : "$tableEnding$comma";
+                $tableFooterBeginning = $numberOfTableRecords > 0 ? "$lineBreak" : '';
+                $tableFooter =   $tableFooterBeginning . '{"markup":"footer","type":"table","name":"' . $tableName . '"}';
+                $addFinishing = array_key_last($tables) == $tableKey ? "$tableFooter$lineBreak]" : "$tableFooter,$lineBreak$lineBreak";
+
 
                 file_put_contents($filePath, $addFinishing, FILE_APPEND);
             }
@@ -140,6 +146,9 @@ class DatabaseDumpCommand extends Command
 
     /**
      * Get a suitable column for ordering if 'id' column is not present.
+     *
+     * @param  string  $tableName
+     * @return string
      */
     private function getOrderByColumn(string $tableName): string
     {

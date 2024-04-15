@@ -2,17 +2,20 @@
 
 namespace Justinkekeocha\DatabaseDump;
 
+use stdClass;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class DatabaseDump
 {
     protected $resolvedTableName;
 
-    public $dumpFilePath;
+    public $filePath;
 
-    public $dumpTables;
+    protected $fileOffset;
 
-    public $tableData;
+    protected $schema;
+
 
     /**
      *  Return an array of files in the directory.
@@ -29,7 +32,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -50,8 +53,8 @@ class DatabaseDump
         $dumpListings = $this->getDirectoryListing($dumpFolder);
 
         //check if the pointer is an integer
-        $this->dumpFilePath = is_int($needle)
-            ? $dumpFolder.array_reverse($dumpListings)[$needle]
+        $this->filePath = is_int($needle)
+            ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -77,95 +80,151 @@ class DatabaseDump
         return $resolvedTableName;
     }
 
-    /**
-     * Resolves and sets the table name based on the provided model or table name.
-     */
-    private function setResolvedTableName(?string $modelOrTableName = null): string
+    protected function isMarkupTag(stdClass $row): bool
     {
+        return isset($row->markup) && isset($row->type) && isset($row->name);
+    }
 
-        if ($modelOrTableName !== null) {
-            $this->resolvedTableName = $this->resolveModelOrTableName($modelOrTableName);
+    protected function isTableHeader(stdClass $row)
+    {
+        return  $this->isMarkupTag($row) && ($row->markup == "header" && $row->type == "table");
+    }
+
+    protected function isTableFooter(stdClass $row): bool
+    {
+        return $this->isMarkupTag($row) && ($row->markup == "footer" && $row->type == "table");
+    }
+
+    protected function readFile(int $offset = 0)
+    {
+        $file = fopen($this->filePath, 'r');
+
+        fseek($file, $offset);
+
+        // Ensure the file is opened
+        if (!$file) {
+            throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
-        if ($this->resolvedTableName) {
-            return $this->resolvedTableName;
-        } else {
-            throw new \InvalidArgumentException('No model or table name provided.');
+        $buffer = ''; // Initialize a buffer to accumulate JSON text
+        $inJson = false; // Flag to track whether we are inside a JSON structur
+
+        try {
+
+            while (!feof($file)) {
+                $line = fgets($file);
+
+                $this->fileOffset = ftell($file);
+
+                //if File format is still in line with package dump generator
+                $decodeJson = json_decode(substr($line, 0, -2));
+                if ($decodeJson) {
+                    yield $decodeJson;
+                } else {
+                    //This was added in case file wast formmated by mistake with prettier
+                    $trimmedLine = trim($line);
+                    if ($trimmedLine == '{') {
+                        // Start of a JSON object
+                        $inJson = true;
+                        $buffer .= $trimmedLine;
+                    } elseif ($inJson) {
+                        $buffer .= $trimmedLine;
+                        if ($trimmedLine == '},' || $trimmedLine == '}') {
+                            // End of a JSON object
+                            $json = rtrim($buffer, ','); // Remove any trailing comma
+                            $decoded = json_decode($json);
+                            if ($decoded) {
+                                yield $decoded;
+                            }
+                            $buffer = ''; // Reset buffer after yielding the decoded JSON
+                            $inJson = false; // Reset JSON flag
+                        }
+                    }
+                }
+            }
+        } finally {
+            // Ensure the file is closed
+            fclose($file);
         }
     }
 
-    /**
-     * Get the tables in a dump.
-     */
-    public function getDumpTables(?string $dumpFilePath = null): self
+    protected function generateSchema(): void
     {
-
-        $this->dumpFilePath = $dumpFilePath ?? $this->dumpFilePath;
-
-        if (! $this->dumpFilePath) {
-            throw new \InvalidArgumentException('No dump file provided.');
+        foreach ($this->readFile() as $row) {
+            if ($this->isTableHeader($row)) {
+                //search for tables and note offsets
+                $this->schema['tables'][$row->name]['file_offset'] = intval($this->fileOffset);
+            }
         }
-
-        $fileContents = file_get_contents($this->dumpFilePath);
-        $jsonData = json_decode($fileContents, true);
-        $dumpTables = array_slice($jsonData, 2);
-
-        $this->dumpTables = $dumpTables;
-
-        return $this;
     }
 
-    /**
-     * Get the data of a table in a dump.
-     */
-    public function getTableData(?string $modelOrTableName = null, ?array $dumpTables = null): self
-    {
-
-        $this->dumpTables = is_array($dumpTables) ? $dumpTables : $this->dumpTables;
-
-        if (! $this->dumpTables) {
-            throw new \InvalidArgumentException('No dump tables provided.');
-        }
-
-        $resolvedTableName = $this->setResolvedTableName($modelOrTableName);
-
-        $tableKey = array_search($resolvedTableName, array_column($this->dumpTables, 'name'));
-
-        if ($tableKey === false) {
-            throw new \InvalidArgumentException("The table '{$resolvedTableName}' does not exist in the dump provided.");
-        }
-
-        $this->tableData = $this->dumpTables[$tableKey]['data'];
-
-        return $this;
-    }
 
     /**
      * Seed a table with data from a dump.
      */
-    public function seed(?string $modelOrTableName = null, ?array $tableData = null, ?int $chunkLength = null, ?callable $formatRowCallback = null): self
+    public function seed(string|array $modelOrTableName, ?int $chunkLength = null, ?callable $formatRowCallback = null): self
     {
-
-        $resolvedTableName = $this->setResolvedTableName($modelOrTableName);
-
-        // Use the provided if given, otherwise use the stored one.
-        $this->tableData = $tableData ?? $this->tableData;
-
         $chunkLength = $chunkLength ?? config('database-dump.chunk_length');
 
-        if ($this->tableData) {
-            $chunks = array_chunk($this->tableData, $chunkLength);
-            foreach ($chunks as $chunk) {
-                if (is_callable($formatRowCallback)) {
-                    $formattedChunk = [];
-                    foreach ($chunk as $row) {
-                        $formattedChunk[] = call_user_func($formatRowCallback, $row);
+        if (is_array($modelOrTableName)) {
+            foreach ($modelOrTableName as $row) {
+                $tables[] = $this->resolveModelOrTableName($row);
+            }
+            //Ignore $formatRow
+        } else {
+            $tables[] = $this->resolveModelOrTableName($modelOrTableName);
+        }
+
+        //GenerateSchema
+        if (!$this->schema) {
+            $this->generateSchema();
+        }
+
+        foreach ($tables as $tableName) {
+
+            if (array_key_exists($tableName, $this->schema['tables']) == false) {
+                throw new \InvalidArgumentException("The table '{$tableName}' does not exist in the dump provided.");
+            }
+
+            $tableOffset = $this->schema['tables'][$tableName]['file_offset'];
+
+            $tableData = [];
+
+            foreach ($this->readFile($tableOffset) as $row) {
+
+                $isHeader = (
+                    $this->isTableHeader($row) &&
+                    $row->name == $tableName
+                );
+
+                $isFooter = (
+                    $this->isTableFooter($row) &&
+                    $row->name == $tableName
+                );
+
+
+                //Check header tag
+                if (!$isHeader && !$isFooter) {
+                    $rowToArray = (array) $row;
+                    if (is_callable($formatRowCallback)) {
+                        $rowToArray = call_user_func($formatRowCallback, $rowToArray);
                     }
-                    $chunk = $formattedChunk;
+                    $tableData[] = $rowToArray;
                 }
-                DB::table($resolvedTableName)->insert($chunk);
+
+
+                if ($isFooter || count($tableData) == $chunkLength) {
+                    DB::table($tableName)->insert($tableData);
+                    $tableData = [];
+                }
+
+                //check footer tag
+                if ($isFooter) {
+                    break;
+                }
             }
         }
+
 
         return $this;
     }
