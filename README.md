@@ -5,8 +5,6 @@
 
 This package intercepts the `migrate:fresh` command, creates a dump of your database and proceeds with normal operation of the migrate:fresh command. This action is useful when you forget to export your database before running migrations.
 
-You can also use this package to generate a dump of your database in JSON format.
-
 This package uses a memory efficient method of streaming the records in the dump file using `fread` function and yielding the result. This entails that there is only one record in memory at any point in time. With this approach, this package can read a theoretical large size of file without exhausting memory.
 
 This package is inspired from the export function in phpMyAdmin.
