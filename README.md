@@ -7,6 +7,8 @@ This package intercepts the `migrate:fresh` command, creates a dump of your data
 
 You can also use this package to generate a dump of your database in JSON format.
 
+This package tries to be memory efficent by streaming the records in the file using `fread` function and yielding the results. This entails that there is only record in memory at any point in time. With this approach, this package can read a large(500GB+) amount of file without exhausting memory.
+
 This package is inspired from the export function in phpMyAdmin.
 
 ## Contents
@@ -202,6 +204,28 @@ use App\Models\User;
 DatabaseDump::getLatestDump()->seed(User::class);
 
 //You can seed multiple tables at once.
+DatabaseDump::getLatestDump()->seed(Country::class)
+->seed(Timezone::class)
+->seed(User::class);
+
+```
+
+When seeding from the same dump file, it is more efficient to call the seed method on the already instantiated class. This is because when the seed method is called first, it reads the whole file and generates a schema that stores the offset of the tables in the file before it starts the seeding action. This schema is created so subsequent seed calls on the same instance (obviously the same file) will just move to the file offset where the table was last found and start reading from the offset.
+
+```php
+
+use Justinkekeocha\DatabaseDump\Facades\DatabaseDump;
+use App\Models\Country;
+use App\Models\Timezone;
+use App\Models\User;
+
+//Whole file will be read 3 times
+DatabaseDump::getLatestDump()->seed(Country::class);
+DatabaseDump::getLatestDump()->seed(Timezone::class);
+DatabaseDump::getLatestDump()->seed(User::class);
+
+
+//Whole file will be read only once.
 DatabaseDump::getLatestDump()->seed(Country::class)
 ->seed(Timezone::class)
 ->seed(User::class);
