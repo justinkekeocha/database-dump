@@ -3,11 +3,11 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/justinkekeocha/database-dump/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/justinkekeocha/database-dump/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/justinkekeocha/database-dump.svg?style=flat-square)](https://packagist.org/packages/justinkekeocha/database-dump)
 
-This package intercepts the `migrate:fresh` command, creates a dump of your database and proceeds with normal operation of the migrate:fresh command. This action is useful when you forget to export your database before running migrations.
+This package enhances the `migrate:fresh` command by creating a dump of your database, allowing you to make migration changes and then re-seed the database with the previous data. This is particularly useful for developers who need to preserve their data before running migrations.
 
-This package uses a memory efficient method of streaming the records in the dump file and yielding the result. This entails that there is only one record in memory at any point in time. With this approach, this package can read a theoretical infinite size of file without exhausting memory.
+Utilizing a memory-efficient method, this package streams records from the dump file, ensuring only one record is in memory at any given time. This approach allows it to handle theoretically infinite file sizes without exhausting memory.
 
-This package is inspired from the export function in phpMyAdmin.
+Inspired by the export function in phpMyAdmin, this package not only enables you to restore your data but also provides the flexibility to alter the data during the seeding process.
 
 ## Contents
 
