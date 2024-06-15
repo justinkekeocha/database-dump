@@ -2,6 +2,14 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## 2.1.1 - 2024-06-15
+
+### What's Changed
+
+* chore(deps): bump aglipanci/laravel-pint-action from 2.3.1 to 2.4 by @dependabot in https://github.com/justinkekeocha/database-dump/pull/4
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/2.1...2.1.1
+
 ## 2.1 - 2024-04-15
 
 This version uses `stream_get_line`for better JSON detection.
