@@ -14,6 +14,8 @@ class DatabaseDump
 
     protected $fileOffset;
 
+    protected $delimiter;
+
     protected $schema;
 
     /**
@@ -31,7 +33,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -53,7 +55,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         $this->filePath = is_int($needle)
-            ? $dumpFolder.array_reverse($dumpListings)[$needle]
+            ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -99,7 +101,7 @@ class DatabaseDump
         $file = fopen($this->filePath, 'r');
 
         // Ensure the file is opened
-        if (! $file) {
+        if (!$file) {
             throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
@@ -109,20 +111,33 @@ class DatabaseDump
 
         try {
 
-            while (! feof($file)) {
-                $line = stream_get_line($file, $streamLength, '},');
-                $line = trim("$line", '[]');
-
-                if (! feof($file)) {
+            while (!feof($file)) {
+                if (!$this->delimiter) {
+                    //Get delimeter assigned to the file
+                    $line = stream_get_line($file, $streamLength, '},');
+                    $line = trim("$line"); //remove any leading or trailing whitespace
+                    $line = trim("$line", '[]}');
+                    $line = "$line}";
+                    $this->delimiter = json_decode($line)->delimiter;
+                } else {
+                    //Removing of white space is mainly in case of JSON pretty print.
+                    $line = stream_get_line($file, $streamLength, '"' . $this->delimiter . '"');
+                    $line = trim("$line"); //remove any leading or trailing whitespace
+                    $line = rtrim("$line", '"delimiter":');
+                    $line = trim("$line"); //remove any leading or trailing whitespace
+                    $line = trim("$line", '[]},');
                     $line = "$line}";
                 }
 
-                $this->fileOffset = ftell($file);
+                if (!feof($file)) {
 
-                if ($decodedJson = json_decode($line)) {
-                    yield $decodedJson;
-                } else {
-                    throw new Exception("Unable to decode the JSON string: {$line}");
+                    $this->fileOffset = ftell($file);
+
+                    if ($decodedJson = json_decode($line)) {
+                        yield $decodedJson;
+                    } else {
+                        throw new Exception("Unable to decode the JSON string: {$line}");
+                    }
                 }
             }
         } finally {
@@ -154,7 +169,7 @@ class DatabaseDump
         This ensures that subsequent seed calls on the same dump file instance don't start afresh,
         But starts gets the already saved offset for the particular table and starts reading from there
         */
-        if (! $this->schema) {
+        if (!$this->schema) {
             $this->generateSchema();
         }
 
@@ -179,7 +194,7 @@ class DatabaseDump
             );
 
             //Check header tag
-            if (! $isHeader && ! $isFooter) {
+            if (!$isHeader && !$isFooter) {
                 $rowToArray = (array) $row;
                 if (is_callable($formatRowCallback)) {
                     $rowToArray = call_user_func($formatRowCallback, $rowToArray);

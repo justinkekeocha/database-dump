@@ -46,9 +46,9 @@ class DatabaseDumpCommand extends Command
 
             //Create file to stream records into
             $dumpFolder = config('database-dump.folder');
-            $fileName = date('Y_m_d_His').'.json';
+            $fileName = date('Y_m_d_His') . '.json';
 
-            if (! is_dir($dumpFolder)) {
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
@@ -56,16 +56,18 @@ class DatabaseDumpCommand extends Command
 
             $lineBreak = "\n";
 
-            $databaseHeader = "[$lineBreak".
-                '{"markup":"header","type":"database","name":"'.$databaseName.'","comment":"Export database to JSON", "version":"2"},'.$lineBreak.
-                '{"markup":"footer","type":"database","name":"'.$databaseName.'"},'."$lineBreak$lineBreak";
+            $delimiter = '"delimiter":' . '"' . $this->generateComplexDelimiter() . '"';
+
+            $databaseHeader = "[$lineBreak" .
+                '{"markup":"header","type":"database","name":"' . $databaseName . '","comment":"Export database to JSON","version":"3",' . $delimiter . '},' . $lineBreak .
+                '{"markup":"footer","type":"database","name":"' . $databaseName . '",' . $delimiter . '},' . "$lineBreak$lineBreak";
 
             file_put_contents($filePath, $databaseHeader, FILE_APPEND);
 
             foreach ($tables as $tableKey => $table) {
 
                 //Table header
-                $tableName = $table->{'Tables_in_'.$databaseName};
+                $tableName = $table->{'Tables_in_' . $databaseName};
 
                 $table = DB::table($tableName);
 
@@ -73,7 +75,7 @@ class DatabaseDumpCommand extends Command
 
                 $tableHeaderFinishing = $numberOfTableRecords > 0 ? "$lineBreak$lineBreak" : "$lineBreak";
 
-                $tableHeader = '{"markup":"header","type":"table","name":"'.$tableName.'"},'.$tableHeaderFinishing;
+                $tableHeader = '{"markup":"header","type":"table","name":"' . $tableName . '",' . $delimiter . '},' . $tableHeaderFinishing;
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
@@ -83,7 +85,7 @@ class DatabaseDumpCommand extends Command
 
                 $counter = 1;
 
-                $table->orderBy($orderByColumn)->chunk(config('database-dump.chunk_length'), function ($records) use (&$counter, $lineBreak, $filePath) {
+                $table->orderBy($orderByColumn)->chunk(config('database-dump.chunk_length'), function ($records) use (&$counter, $lineBreak, $delimiter, $filePath) {
                     $tableData = '';
 
                     foreach ($records as $record) {
@@ -104,6 +106,7 @@ class DatabaseDumpCommand extends Command
                         }
 
                         if ($encodedJSON) {
+                            $encodedJSON = rtrim($encodedJSON, '}') . ',' . $delimiter . '}';
                             $tableData .= "$encodedJSON,$lineBreak";
                         }
                         $counter++;
@@ -112,7 +115,7 @@ class DatabaseDumpCommand extends Command
                 });
 
                 $tableFooterBeginning = $numberOfTableRecords > 0 ? "$lineBreak" : '';
-                $tableFooter = $tableFooterBeginning.'{"markup":"footer","type":"table","name":"'.$tableName.'"}';
+                $tableFooter = $tableFooterBeginning . '{"markup":"footer","type":"table","name":"' . $tableName . '",' . $delimiter . '}';
                 $addFinishing = array_key_last($tables) == $tableKey ? "$tableFooter$lineBreak]" : "$tableFooter,$lineBreak$lineBreak";
 
                 file_put_contents($filePath, $addFinishing, FILE_APPEND);
@@ -136,6 +139,14 @@ class DatabaseDumpCommand extends Command
             $this->call('up');
             throw $e;
         }
+    }
+
+    private function generateComplexDelimiter()
+    {
+        $randomString1 = bin2hex(random_bytes(2));
+        $randomString2 = base64_encode(random_bytes(2));
+        $randomString3 = str_shuffle('abcdef' . bin2hex(random_bytes(1)));
+        return 'Keke' . $randomString1 . 'Ju' . $randomString2 . 'Cheta' . $randomString3;
     }
 
     /**
