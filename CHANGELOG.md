@@ -2,6 +2,14 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## Better handling of JSON delimiter - 2024-06-22
+
+The previous versions used the search for }, to get  the existence of valid JSON. But since there can be nested JSON, this can throw an error, since it is not valid JSON.
+
+To solve this issue, a delimiter string is added at the end of each row, when this delimiter is found, it indicates the end of the row
+
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/2.1.1...3.0
+
 ## 2.1.1 - 2024-06-15
 
 ### What's Changed
