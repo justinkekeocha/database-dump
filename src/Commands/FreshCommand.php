@@ -12,13 +12,13 @@ class FreshCommand extends LaravelFreshCommand
     public function handle()
     {
 
-        if (app()->environment('production')) {
+        if ($this->laravel->environment('production')) {
 
-            if (! config('database-dump.enable')) {
+            if (!config('database-dump.enable')) {
 
                 $this->warn('Warning: The database-dump package is disabled. Running this command in production can lead to potential loss of data.');
 
-                if (! $this->confirm('Do you wish to continue?')) {
+                if (!$this->confirm('Do you wish to continue?')) {
                     return;
                 }
             }
