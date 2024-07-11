@@ -2,6 +2,15 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## 3.1 - 2024-07-11
+
+This version decreases downtime when generating database dump
+
+We generate a schema that contains number of rows in each table and limit the records added by that.
+
+This maintains the relationships and allows application to continue running while dump is being generated.
+**Full Changelog**: https://github.com/justinkekeocha/database-dump/compare/3.0...3.1
+
 ## Better handling of JSON delimiter - 2024-06-22
 
 The previous versions used the search for }, to get  the existence of valid JSON. But since there can be nested JSON, this can throw an error, since it is not valid JSON.
