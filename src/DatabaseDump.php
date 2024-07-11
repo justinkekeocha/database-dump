@@ -2,9 +2,10 @@
 
 namespace Justinkekeocha\DatabaseDump;
 
+use stdClass;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use stdClass;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseDump
 {
@@ -33,7 +34,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -55,7 +56,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         $this->filePath = is_int($needle)
-            ? $dumpFolder.array_reverse($dumpListings)[$needle]
+            ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -101,7 +102,7 @@ class DatabaseDump
         $file = fopen($this->filePath, 'r');
 
         // Ensure the file is opened
-        if (! $file) {
+        if (!$file) {
             throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
@@ -111,9 +112,9 @@ class DatabaseDump
 
         try {
 
-            while (! feof($file)) {
+            while (!feof($file)) {
 
-                if (! $this->delimiter) {
+                if (!$this->delimiter) {
                     //Get delimeter assigned to the file
                     $line = stream_get_line($file, $streamLength, '},');
                     $line = trim("$line"); //remove any leading or trailing whitespace
@@ -123,15 +124,15 @@ class DatabaseDump
                 } else {
                     //Removing of white space is mainly in case of JSON pretty print.
                     //The reason we don't use something like "Kekeochaee":"Justindbbceaf5" below is that pretty print can add white space in between.
-                    $line = stream_get_line($file, $streamLength, '"'.$this->delimiter[1].'"');
+                    $line = stream_get_line($file, $streamLength, '"' . $this->delimiter[1] . '"');
                     $line = trim("$line"); //remove any leading or trailing whitespace
-                    $line = rtrim("$line", '"'.$this->delimiter[0].'":');
+                    $line = rtrim("$line", '"' . $this->delimiter[0] . '":');
                     $line = trim("$line"); //remove any leading or trailing whitespace
                     $line = trim("$line", '[]},');
                     $line = "$line}";
                 }
 
-                if (! feof($file)) {
+                if (!feof($file)) {
 
                     $this->fileOffset = ftell($file);
 
@@ -158,6 +159,19 @@ class DatabaseDump
         }
     }
 
+    protected function ensureSafeChunkLength(int $chunkLength, string $tableName): int
+    {
+        $maxQueryPlaceholders = 65_535;
+        $numberOfTableColums = count(Schema::getColumnListing($tableName));
+        $safeChunkLength = floor($maxQueryPlaceholders / $numberOfTableColums);
+
+        if ($safeChunkLength < $chunkLength) {
+            $chunkLength = $safeChunkLength;
+        }
+
+        return $chunkLength;
+    }
+
     /**
      * Seed a table with data from a dump.
      */
@@ -167,11 +181,13 @@ class DatabaseDump
 
         $tableName = $this->resolveModelOrTableName($modelOrTableName);
 
+        $chunkLength = $this->ensureSafeChunkLength($chunkLength, $tableName);
+
         /* Generate a schema of the dump and note the file offset of each table.
         This ensures that subsequent seed calls on the same dump file instance don't start afresh,
         But starts gets the already saved offset for the particular table and starts reading from there
         */
-        if (! $this->schema) {
+        if (!$this->schema) {
             $this->generateSchema();
         }
 
@@ -196,7 +212,7 @@ class DatabaseDump
             );
 
             //Check header tag
-            if (! $isHeader && ! $isFooter) {
+            if (!$isHeader && !$isFooter) {
                 $rowToArray = (array) $row;
                 if (is_callable($formatRowCallback)) {
                     $rowToArray = call_user_func($formatRowCallback, $rowToArray);
