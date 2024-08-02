@@ -32,7 +32,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
                     $result[] = $file;
                 }
             }
@@ -54,7 +54,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         $this->filePath = is_int($needle)
-            ? $dumpFolder . array_reverse($dumpListings)[$needle]
+            ? $dumpFolder.array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -74,7 +74,7 @@ class DatabaseDump
     public function resolveModelOrTableName(string $modelOrTableName): string
     {
         $resolvedTableName = (class_exists($modelOrTableName) && method_exists($modelOrTableName, 'getTable'))
-            ? (new $modelOrTableName())->getTable()
+            ? (new $modelOrTableName)->getTable()
             : $modelOrTableName;
 
         return $resolvedTableName;
@@ -100,7 +100,7 @@ class DatabaseDump
         $file = fopen($this->filePath, 'r');
 
         // Ensure the file is opened
-        if (!$file) {
+        if (! $file) {
             throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
@@ -110,17 +110,17 @@ class DatabaseDump
 
         try {
 
-            $delimiter = explode('|', "Kekeochafd77|Justinbdaaefc4e5");
+            $delimiter = explode('|', 'Kekeochafd77|Justinbdaaefc4e5');
 
-            while (!feof($file)) {
+            while (! feof($file)) {
 
                 $this->fileOffset = ftell($file);
 
                 //Removing of white space is mainly in case of JSON pretty print.
                 //The reason we don't use something like "Kekeochaee":"Justindbbceaf5" below is that pretty print can add white space in between.
-                $line = stream_get_line($file, $streamLength, '"' . $delimiter[1] . '"');
+                $line = stream_get_line($file, $streamLength, '"'.$delimiter[1].'"');
                 $line = trim("$line"); //remove any leading or trailing whitespace
-                $line = rtrim("$line", '"' . $delimiter[0] . '":');
+                $line = rtrim("$line", '"'.$delimiter[0].'":');
                 $line = trim("$line"); //remove any leading or trailing whitespace
 
                 if ($this->fileOffset == 0) {
@@ -131,7 +131,7 @@ class DatabaseDump
 
                 $line = "$line}";
 
-                if (!feof($file)) {
+                if (! feof($file)) {
 
                     if ($decodedJson = json_decode($line)) {
                         yield $decodedJson;
@@ -184,7 +184,7 @@ class DatabaseDump
         This ensures that subsequent seed calls on the same dump file instance don't start afresh,
         But starts gets the already saved offset for the particular table and starts reading from there
         */
-        if (!$this->schema) {
+        if (! $this->schema) {
             $this->generateSchema();
         }
 
@@ -209,7 +209,7 @@ class DatabaseDump
             );
 
             //Check header tag
-            if (!$isTableHeader && !$isTableFooter) {
+            if (! $isTableHeader && ! $isTableFooter) {
                 $rowToArray = (array) $row;
                 if (is_callable($formatRowCallback)) {
                     $rowToArray = call_user_func($formatRowCallback, $rowToArray);
@@ -236,8 +236,8 @@ class DatabaseDump
 
         //TODO: add test to ensure that the first row of the dump is the header that has the schema and stuffs.
         //Also add test for this function.
-        foreach ($this->readFile(0) as  $row) {
-            $tables = (array)$row->data->schema->tables;
+        foreach ($this->readFile(0) as $row) {
+            $tables = (array) $row->data->schema->tables;
             foreach ($tables as $tableName => $data) {
                 $tableCount = DB::table($tableName)->count();
                 if ($tableCount != $data->count) {
