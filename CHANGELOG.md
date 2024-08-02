@@ -2,6 +2,10 @@
 
 All notable changes to `database-dump` will be documented in this file.
 
+## Introduce isConsistent with database - 2024-08-02
+
+This function check the records we have in the dump file against what is in the database, this is especially useful when you drop database and seed it back, to be sure all records are back before bringing the application up
+
 ## 3.1 - 2024-07-11
 
 This version decreases downtime when generating database dump
