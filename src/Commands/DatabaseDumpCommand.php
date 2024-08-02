@@ -47,7 +47,7 @@ class DatabaseDumpCommand extends Command
             $dumpFolder = config('database-dump.folder');
             $fileName = $schema['file_name'];
 
-            if (! is_dir($dumpFolder)) {
+            if (!is_dir($dumpFolder)) {
                 mkdir($dumpFolder, 0755, true);
             }
 
@@ -55,25 +55,37 @@ class DatabaseDumpCommand extends Command
 
             $lineBreak = "\n";
 
-            $complexDelimiter = $this->generateComplexDelimiter();
+            $complexDelimiter = "Kekeochafd77|Justinbdaaefc4e5";
             $splittedDelimiter = explode('|', $complexDelimiter);
-            $delimiter = '"'.$splittedDelimiter[0].'":"'.$splittedDelimiter[1].'"';
+            $delimiter = '"' . $splittedDelimiter[0] . '":"' . $splittedDelimiter[1] . '"';
 
-            $databaseHeader = "[$lineBreak".
-                '{"markup":"header","type":"database","name":"'.$databaseName.'","comment":"Export database to JSON","version":"3","delimiter":'.'"'.$complexDelimiter.'"},'.$lineBreak.
-                '{"markup":"footer","type":"database","name":"'.$databaseName.'",'.$delimiter.'},'."$lineBreak$lineBreak";
+            $databaseHeader = "[$lineBreak" . json_encode([
+                'markup' => 'header',
+                'type' => 'database',
+                'name' => $databaseName,
+                'data' => [
+                    'version' => 4,
+                    'comment' => 'Export database to JSON',
+                    'schema' => $schema
+                ],
+                $splittedDelimiter[0] => $splittedDelimiter[1],
+            ], JSON_UNESCAPED_UNICODE) . ",$lineBreak";
+
+            $databaseHeader .= '{"markup":"footer","type":"database","name":"' . $databaseName . '",' . $delimiter . '},' . "$lineBreak$lineBreak";
 
             file_put_contents($filePath, $databaseHeader, FILE_APPEND);
 
             $tables = $schema['tables'];
 
-            foreach ($tables as $tableName => $numberOfTableRecords) {
+            foreach ($tables as $tableName => $array) {
+
+                $numberOfTableRecords = $array['count'];
 
                 $table = DB::table($tableName);
 
                 $tableHeaderFinishing = $numberOfTableRecords > 0 ? "$lineBreak$lineBreak" : "$lineBreak";
 
-                $tableHeader = '{"markup":"header","type":"table","name":"'.$tableName.'",'.$delimiter.'},'.$tableHeaderFinishing;
+                $tableHeader = '{"markup":"header","type":"table","name":"' . $tableName . '",' . $delimiter . '},' . $tableHeaderFinishing;
 
                 //Append table header
                 file_put_contents($filePath, $tableHeader, FILE_APPEND);
@@ -104,7 +116,7 @@ class DatabaseDumpCommand extends Command
                         }
 
                         if ($encodedJSON) {
-                            $encodedJSON = rtrim($encodedJSON, '}').','.$delimiter.'}';
+                            $encodedJSON = rtrim($encodedJSON, '}') . ',' . $delimiter . '}';
                             $tableData .= "$encodedJSON,$lineBreak";
                         }
 
@@ -126,7 +138,7 @@ class DatabaseDumpCommand extends Command
                 });
 
                 $tableFooterBeginning = $numberOfTableRecords > 0 ? "$lineBreak" : '';
-                $tableFooter = $tableFooterBeginning.'{"markup":"footer","type":"table","name":"'.$tableName.'",'.$delimiter.'}';
+                $tableFooter = $tableFooterBeginning . '{"markup":"footer","type":"table","name":"' . $tableName . '",' . $delimiter . '}';
                 $addFinishing = array_key_last($tables) == $tableName ? "$tableFooter$lineBreak]" : "$tableFooter,$lineBreak$lineBreak";
 
                 file_put_contents($filePath, $addFinishing, FILE_APPEND);
@@ -160,14 +172,16 @@ class DatabaseDumpCommand extends Command
         $tables = DB::select('SHOW TABLES');
 
         $schema = [
-            'file_name' => date('Y_m_d_His').'.json',
+            'file_name' => date('Y_m_d_His') . '.json',
             'database_name' => $databaseName,
         ];
 
         foreach ($tables as $table) {
-            $tableName = $table->{'Tables_in_'.$databaseName};
+            $tableName = $table->{'Tables_in_' . $databaseName};
             $tableCount = DB::table($tableName)->count();
-            $schema['tables'][$tableName] = $tableCount;
+            $schema['tables'][$tableName] = [
+                'count' => $tableCount,
+            ];
             with(new TwoColumnDetail($this->getOutput()))->render(
                 $tableName,
                 "<fg=gray>$tableCount</> rows"
@@ -177,14 +191,6 @@ class DatabaseDumpCommand extends Command
         $this->call('up');
 
         return $schema;
-    }
-
-    private function generateComplexDelimiter()
-    {
-        $randomString1 = bin2hex(random_bytes(1));
-        $randomString2 = str_shuffle('abcdef'.bin2hex(random_bytes(1)));
-
-        return "Kekeocha{$randomString1}|Justin{$randomString2}";
     }
 
     /**

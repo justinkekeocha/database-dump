@@ -15,8 +15,6 @@ class DatabaseDump
 
     protected $fileOffset;
 
-    protected $delimiter;
-
     protected $schema;
 
     /**
@@ -34,7 +32,7 @@ class DatabaseDump
             foreach ($files as $file) {
                 //Remove current directory and parent directory from listing
                 //Choose only files except folders
-                if ($file != '.' && $file != '..' && is_file($directoryPath.'/'.$file)) {
+                if ($file != '.' && $file != '..' && is_file($directoryPath . '/' . $file)) {
                     $result[] = $file;
                 }
             }
@@ -56,7 +54,7 @@ class DatabaseDump
 
         //check if the pointer is an integer
         $this->filePath = is_int($needle)
-            ? $dumpFolder.array_reverse($dumpListings)[$needle]
+            ? $dumpFolder . array_reverse($dumpListings)[$needle]
             : "$dumpFolder$needle";
 
         return $this;
@@ -102,7 +100,7 @@ class DatabaseDump
         $file = fopen($this->filePath, 'r');
 
         // Ensure the file is opened
-        if (! $file) {
+        if (!$file) {
             throw new Exception("Unable to open the file: {$this->filePath}");
         }
 
@@ -112,29 +110,28 @@ class DatabaseDump
 
         try {
 
-            while (! feof($file)) {
+            $delimiter = explode('|', "Kekeochafd77|Justinbdaaefc4e5");
 
-                if (! $this->delimiter) {
-                    //Get delimeter assigned to the file
-                    $line = stream_get_line($file, $streamLength, '},');
-                    $line = trim("$line"); //remove any leading or trailing whitespace
-                    $line = trim("$line", '[]}');
-                    $line = "$line}";
-                    $this->delimiter = explode('|', json_decode($line)->delimiter);
+            while (!feof($file)) {
+
+                $this->fileOffset = ftell($file);
+
+                //Removing of white space is mainly in case of JSON pretty print.
+                //The reason we don't use something like "Kekeochaee":"Justindbbceaf5" below is that pretty print can add white space in between.
+                $line = stream_get_line($file, $streamLength, '"' . $delimiter[1] . '"');
+                $line = trim("$line"); //remove any leading or trailing whitespace
+                $line = rtrim("$line", '"' . $delimiter[0] . '":');
+                $line = trim("$line"); //remove any leading or trailing whitespace
+
+                if ($this->fileOffset == 0) {
+                    $line = trim("$line", '[,');
                 } else {
-                    //Removing of white space is mainly in case of JSON pretty print.
-                    //The reason we don't use something like "Kekeochaee":"Justindbbceaf5" below is that pretty print can add white space in between.
-                    $line = stream_get_line($file, $streamLength, '"'.$this->delimiter[1].'"');
-                    $line = trim("$line"); //remove any leading or trailing whitespace
-                    $line = rtrim("$line", '"'.$this->delimiter[0].'":');
-                    $line = trim("$line"); //remove any leading or trailing whitespace
-                    $line = trim("$line", '[]},');
-                    $line = "$line}";
+                    $line = trim("$line", ']},');
                 }
 
-                if (! feof($file)) {
+                $line = "$line}";
 
-                    $this->fileOffset = ftell($file);
+                if (!feof($file)) {
 
                     if ($decodedJson = json_decode($line)) {
                         yield $decodedJson;
@@ -187,7 +184,7 @@ class DatabaseDump
         This ensures that subsequent seed calls on the same dump file instance don't start afresh,
         But starts gets the already saved offset for the particular table and starts reading from there
         */
-        if (! $this->schema) {
+        if (!$this->schema) {
             $this->generateSchema();
         }
 
@@ -201,18 +198,18 @@ class DatabaseDump
 
         foreach ($this->readFile($tableOffset) as $row) {
 
-            $isHeader = (
+            $isTableHeader = (
                 $this->isTableHeader($row) &&
                 $row->name == $tableName
             );
 
-            $isFooter = (
+            $isTableFooter = (
                 $this->isTableFooter($row) &&
                 $row->name == $tableName
             );
 
             //Check header tag
-            if (! $isHeader && ! $isFooter) {
+            if (!$isTableHeader && !$isTableFooter) {
                 $rowToArray = (array) $row;
                 if (is_callable($formatRowCallback)) {
                     $rowToArray = call_user_func($formatRowCallback, $rowToArray);
@@ -220,17 +217,36 @@ class DatabaseDump
                 $tableData[] = $rowToArray;
             }
 
-            if ($isFooter || count($tableData) == $chunkLength) {
+            if ($isTableFooter || count($tableData) == $chunkLength) {
                 DB::table($tableName)->insert($tableData);
                 $tableData = [];
             }
 
             //check footer tag
-            if ($isFooter) {
+            if ($isTableFooter) {
                 break;
             }
         }
 
         return $this;
+    }
+
+    public function isConsistentWithDatabase(): bool
+    {
+
+        //TODO: add test to ensure that the first row of the dump is the header that has the schema and stuffs.
+        //Also add test for this function.
+        foreach ($this->readFile(0) as  $row) {
+            $tables = (array)$row->data->schema->tables;
+            foreach ($tables as $tableName => $data) {
+                $tableCount = DB::table($tableName)->count();
+                if ($tableCount != $data->count) {
+                    throw new Exception("The dump has $data->count records for the table `{$tableName}`, but the database has $tableCount records in the database.");
+                }
+            }
+            break;
+        }
+
+        return true;
     }
 }
