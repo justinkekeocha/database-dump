@@ -25,7 +25,9 @@ class FreshCommand extends LaravelFreshCommand
         }
 
         if (config('database-dump.enable')) {
-            $this->call('database:dump');
+            $this->call('database:dump', [
+                '--seed' => $this->needsSeeding(),
+            ]);
         }
 
         parent::handle();
